@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Resume - ResuMate AI{% endblock %}
+
+{% block content %}
+<div class="container form-wrapper">
+    <div class="card auth-card" style="max-width: 500px; text-align: center; border-color: rgba(239, 68, 68, 0.3);">
+        <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--danger); margin: 0 auto 1.5rem;">
+            <i data-lucide="alert-triangle"></i>
+        </div>
+        
+        <h2 style="font-size: 1.8rem; margin-bottom: 0.8rem; color: #FFFFFF;">Delete Resume?</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem;">
+            Are you sure you want to delete "<strong>{{ resume.title }}</strong>"? This will permanently remove the resume, all parsed data, and its version history. This action cannot be undone.
+        </p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div style="display: flex; gap: 1rem;">
+                <a href="{% url 'resume_detail' resume.pk %}" class="btn btn-secondary" style="flex: 1;">Cancel</a>
+                <button type="submit" class="btn btn-primary" style="flex: 1; background: linear-gradient(135deg, var(--danger) 0%, #DC2626 100%); box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);">
+                    Confirm Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

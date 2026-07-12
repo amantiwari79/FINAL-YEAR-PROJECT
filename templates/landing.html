@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}ResuMate AI - ATS-Optimized AI Resume Builder & Coach{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <span class="badge">Introducing ResuMate AI 2.0</span>
+        <h1>Craft the Perfect Resume with the <span>Power of AI</span></h1>
+        <p>Upload your current CV, parse key details instantly, get an ATS score check, and write high-impact cover letters tailormade for top recruiters.</p>
+        <div class="hero-actions">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard <i data-lucide="layout-dashboard"></i></a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-primary">Build Your Resume Free <i data-lucide="sparkles"></i></a>
+                <a href="{% url 'login' %}" class="btn btn-secondary">Login Account <i data-lucide="log-in"></i></a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Interactive Features Section -->
+    <section class="features-section">
+        <div class="section-header">
+            <h2>Supercharged AI Engine & Tools</h2>
+            <p>Every feature you need to secure more interviews, faster.</p>
+        </div>
+        
+        <div class="feature-grid">
+            <!-- Feature 1: Resume Upload & Preview -->
+            <div class="card feature-card">
+                <div class="feature-icon"><i data-lucide="file-text"></i></div>
+                <h3>Smart Resume Storage</h3>
+                <p>Upload PDF and DOCX files. View full rendering in-browser, track versions, and organize your work histories with ease.</p>
+            </div>
+            
+            <!-- Feature 2: ATS Scanner -->
+            <div class="card feature-card">
+                <div class="feature-icon"><i data-lucide="target"></i></div>
+                <h3>ATS Score Analysis</h3>
+                <p>Run immediate compliance scans against customized job descriptions. Identify missing keywords, formatting errors, and gaps.</p>
+            </div>
+            
+            <!-- Feature 3: AI Rewrite -->
+            <div class="card feature-card">
+                <div class="feature-icon"><i data-lucide="wand2"></i></div>
+                <h3>AI Resume Rewriter</h3>
+                <p>Draft professional resume summaries and improve bullet points using advanced models optimized for action-oriented keywords.</p>
+            </div>
+            
+            <!-- Feature 4: Cover Letter Creator -->
+            <div class="card feature-card">
+                <div class="feature-icon"><i data-lucide="mail"></i></div>
+                <h3>Tailored Cover Letters</h3>
+                <p>Instantly generate professional, persuasive cover letters matched to specific job descriptions and your experiences.</p>
+            </div>
+            
+            <!-- Feature 5: Career Coach -->
+            <div class="card feature-card">
+                <div class="feature-icon"><i data-lucide="message-square"></i></div>
+                <h3>AI Career Advisor</h3>
+                <p>Get personalized guidance, mock interview prep, and salary negotiation insights through our contextual chatbot interface.</p>
+            </div>
+            
+            <!-- Feature 6: Docker Ready -->
+            <div class="card feature-card">
+                <div class="feature-icon"><i data-lucide="container"></i></div>
+                <h3>Modern Architecture</h3>
+                <p>Built with robust Django architecture, configured for PostgreSQL, and fully Docker-ready for modern cloud deployments.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats showcase section (to give a high-end feel) -->
+    <section style="margin: 3rem 0; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 4rem 2rem; text-align: center;">
+        <div class="stats-grid" style="max-width: 900px; margin: 0 auto;">
+            <div>
+                <h3 style="font-size: 3rem; color: var(--primary); font-family: var(--font-heading); margin-bottom: 0.5rem;">92%</h3>
+                <p style="color: var(--text-secondary); font-size: 1rem;">ATS Compliance Pass Rate</p>
+            </div>
+            <div>
+                <h3 style="font-size: 3rem; color: var(--secondary); font-family: var(--font-heading); margin-bottom: 0.5rem;">3.5x</h3>
+                <p style="color: var(--text-secondary); font-size: 1rem;">More Recruiter Responses</p>
+            </div>
+            <div>
+                <h3 style="font-size: 3rem; color: var(--accent); font-family: var(--font-heading); margin-bottom: 0.5rem;">15 mins</h3>
+                <p style="color: var(--text-secondary); font-size: 1rem;">Average Resume Upgrade Time</p>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

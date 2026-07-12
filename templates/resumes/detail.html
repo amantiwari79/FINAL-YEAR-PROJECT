@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ resume.title }} - ResuMate AI{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; padding-bottom: 2rem;">
+    <!-- Back to Dashboard -->
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+        
+        <!-- Left Panel: Actions & Versions -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            
+            <!-- Details Card -->
+            <div class="card" style="padding: 1.8rem;">
+                <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.8rem;">
+                    {{ resume.title }}
+                </h2>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.8rem; margin: 1.2rem 0; font-size: 0.9rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Current Version:</span>
+                        <span style="font-weight: 600; color: var(--secondary);">v{{ resume.current_version }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Uploaded:</span>
+                        <span style="font-weight: 500;">{{ resume.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary);">Last Updated:</span>
+                        <span style="font-weight: 500;">{{ resume.updated_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.5rem;">
+                    <a href="{% url 'ats_scan' resume.pk %}" class="btn btn-primary" style="width: 100%;">
+                        <i data-lucide="target"></i> Scan ATS Score
+                    </a>
+                    <a href="{% url 'bullet_improver' resume.pk %}" class="btn btn-secondary" style="width: 100%;">
+                        <i data-lucide="wand2"></i> AI Bullet Improver
+                    </a>
+                    <a href="{% url 'cover_letter' resume.pk %}" class="btn btn-secondary" style="width: 100%;">
+                        <i data-lucide="mail"></i> Cover Letter Generator
+                    </a>
+                    <a href="{% url 'interview_prep' resume.pk %}" class="btn btn-secondary" style="width: 100%;">
+                        <i data-lucide="help-circle"></i> Interview Prep
+                    </a>
+                    <a href="{% url 'delete_resume' resume.pk %}" class="btn btn-text" style="color: var(--danger); width: 100%; margin-top: 0.5rem;">
+                        <i data-lucide="trash-2"></i> Delete Resume
+                    </a>
+                </div>
+            </div>
+
+            <!-- Upload New Version Card -->
+            <div class="card" style="padding: 1.8rem;">
+                <h3 style="font-size: 1.2rem; margin-bottom: 1rem;">Upload New Version</h3>
+                
+                <form action="{% url 'upload_new_version' resume.pk %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <div style="border: 2px dashed var(--glass-border); border-radius: var(--radius-md); padding: 1rem; text-align: center; cursor: pointer; transition: var(--transition-smooth);" onclick="document.getElementById('new-file').click();" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--glass-border)';">
+                            <i data-lucide="upload" style="width: 24px; height: 24px; color: var(--text-secondary); margin-bottom: 0.5rem;"></i>
+                            <p style="font-size: 0.8rem; color: var(--text-primary);">Choose file (PDF, DOCX)</p>
+                            <p id="new-file-name" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem; word-break: break-all;">No file chosen</p>
+                            <input type="file" name="file" id="new-file" required style="display: none;" accept=".pdf,.docx" onchange="document.getElementById('new-file-name').innerText = this.files[0] ? this.files[0].name : 'No file chosen';">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-secondary" style="width: 100%; border-color: var(--primary); color: var(--primary);">
+                        Save Version {{ resume.current_version|add:"1" }}
+                    </button>
+                </form>
+            </div>
+
+            <!-- Version History -->
+            <div class="card" style="padding: 1.8rem;">
+                <h3 style="font-size: 1.2rem; margin-bottom: 1rem;">Version History</h3>
+                
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem;">
+                    {% for version in versions %}
+                        <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem; border-radius: var(--radius-sm); background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);">
+                            <div>
+                                <p style="font-weight: 600; font-size: 0.9rem;">Version {{ version.version_number }}</p>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary);">{{ version.created_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                            <a href="{{ version.file.url }}" download class="btn btn-text" style="padding: 0.3rem;" title="Download version file">
+                                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+        </div>
+
+        <!-- Right Panel: Live Document Preview -->
+        <div class="card" style="padding: 1rem; display: flex; flex-direction: column; height: 75vh; min-height: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0 1rem;">
+                <h3 style="font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="file-text"></i> Document Preview
+                </h3>
+                <a href="{{ resume.file.url }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;" target="_blank">
+                    Open File <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                </a>
+            </div>
+            
+            <div style="flex: 1; border-radius: var(--radius-md); overflow: hidden; background: #FFFFFF; border: 1px solid var(--glass-border);">
+                {% if resume.file.name|lower|slice:"-4:" == ".pdf" %}
+                    <!-- Render PDF preview using browser embed -->
+                    <embed src="{{ resume.file.url }}" type="application/pdf" width="100%" height="100%" style="border: none;">
+                {% else %}
+                    <!-- For DOCX files, render extracted text -->
+                    <div style="padding: 2rem; color: #333333; height: 100%; overflow-y: auto; font-family: var(--font-body); font-size: 0.9rem; line-height: 1.8; text-align: left; background: #FAF9F6;">
+                        <h4 style="color: #111111; margin-bottom: 1rem; border-bottom: 1px solid #E5E7EB; padding-bottom: 0.5rem;">Extracted Raw Text (DOCX Preview)</h4>
+                        <pre style="white-space: pre-wrap; font-family: inherit;">{{ resume.raw_text }}</pre>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

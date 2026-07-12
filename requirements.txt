@@ -1,0 +1,9 @@
+django>=5.0,<6.0
+psycopg2-binary>=2.9
+python-decouple>=3.8
+dj-database-url>=2.1
+google-genai>=0.1.0
+pypdf>=4.0
+docx2txt>=0.8
+pillow>=10.0
+gunicorn>=21.0

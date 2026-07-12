@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Interview Preparation - {{ resume.title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; padding-bottom: 2rem;">
+    <!-- Back Button -->
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'resume_detail' resume.pk %}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Resume
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+        
+        <!-- Left Panel: Job Details Input -->
+        <div class="card" style="padding: 2rem;">
+            <h2 style="font-size: 1.6rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="help-circle" style="color: var(--primary);"></i> Interview Prep Assistant
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                Generate customized mock interview questions based on your resume and a target job description.
+            </p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="job_description">Job Description</label>
+                    <textarea name="job_description" id="job_description" rows="10" class="form-input" required placeholder="Paste the job description to tailor the interview questions..." style="resize: vertical; font-size: 0.9rem;"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Generate Questions <i data-lucide="zap"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Right Panel: Questions List -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% if prep_data %}
+                <div class="card" style="padding: 2rem;">
+                    <h3 style="font-size: 1.4rem; margin-bottom: 1.5rem;">Tailored Mock Questions</h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        {% for question in prep_data.questions %}
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--glass-border); padding: 1.2rem; border-radius: var(--radius-md); position: relative; overflow: hidden;">
+                                <!-- Tag -->
+                                <span style="background: var(--primary-glow); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 0.6rem; display: inline-block;">
+                                    {{ question.type }}
+                                </span>
+                                
+                                <h4 style="font-size: 1.05rem; line-height: 1.5; color: #FFFFFF; font-weight: 600; margin-bottom: 0.8rem;">
+                                    {{ question.question }}
+                                </h4>
+                                
+                                <!-- Accordion Toggle Details -->
+                                <details style="margin-top: 0.8rem; border-top: 1px solid var(--glass-border); padding-top: 0.8rem;">
+                                    <summary style="font-size: 0.8rem; font-weight: 600; color: var(--secondary); cursor: pointer; display: flex; align-items: center; gap: 0.3rem;">
+                                        <i data-lucide="info" style="width: 12px; height: 12px;"></i> View Answering Tips
+                                    </summary>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.6; background: rgba(0,0,0,0.2); padding: 0.8rem; border-radius: var(--radius-sm);">
+                                        {{ question.tips }}
+                                    </p>
+                                </details>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <!-- Empty state -->
+                <div class="card" style="padding: 4rem 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; border-style: dashed;">
+                    <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--text-muted);">
+                        <i data-lucide="help-circle"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Awaiting Generation</h3>
+                        <p style="color: var(--text-secondary); max-width: 320px; margin: 0 auto; font-size: 0.9rem;">Paste a job description on the left and click 'Generate Questions' to prepare for your interview.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

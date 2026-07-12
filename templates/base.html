@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ResuMate AI - Smart Resume Builder & Career Companion{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Build ATS-optimized resumes, parse CVs, get matching job scores, and use AI tools to supercharge your career.{% endblock %}">
+    
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <!-- Lucide Icons for premium feel -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="container nav-wrapper">
+            <a href="{% url 'landing' %}" class="logo">
+                <i data-lucide="sparkles"></i>
+                Resu<span>Mate</span> AI
+            </a>
+            
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="{% url 'landing' %}" class="nav-link {% if request.resolver_match.url_name == 'landing' %}active{% endif %}">Home</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a></li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-text nav-link" style="padding: 0; background: none; border: none; font-size: inherit; font-family: inherit; cursor: pointer;">
+                                    Logout
+                                </button>
+                            </form>
+                        </li>
+                        <li><a href="{% url 'dashboard' %}" class="btn btn-primary"><i data-lucide="layout-dashboard"></i> Console</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}" class="nav-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}">Login</a></li>
+                        <li><a href="{% url 'register' %}" class="btn btn-primary">Get Started <i data-lucide="arrow-right"></i></a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Message Alerts -->
+    {% if messages %}
+        <div class="container" style="margin-top: 1.5rem;">
+            {% for message in messages %}
+                <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                    <i data-lucide="info"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content Block -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: rgba(11, 15, 25, 0.9); border-top: 1px solid var(--glass-border); padding: 3rem 0; margin-top: 5rem; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+        <div class="container">
+            <p style="margin-bottom: 1rem;">&copy; 2026 ResuMate AI. All rights reserved.</p>
+            <div style="display: flex; justify-content: center; gap: 1.5rem;">
+                <a href="#" class="nav-link">Privacy Policy</a>
+                <a href="#" class="nav-link">Terms of Service</a>
+                <a href="#" class="nav-link">Contact Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

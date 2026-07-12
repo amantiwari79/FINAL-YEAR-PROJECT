@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account - ResuMate AI{% endblock %}
+
+{% block content %}
+<div class="container form-wrapper">
+    <div class="card auth-card" style="max-width: 520px;">
+        <div class="form-header">
+            <h2>Get Started</h2>
+            <p>Create your free ResuMate AI account</p>
+        </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="first_name">First Name</label>
+                    <input type="text" name="first_name" id="first_name" class="form-input" required placeholder="John">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" name="last_name" id="last_name" class="form-input" required placeholder="Doe">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" name="email" id="email" class="form-input" required placeholder="john.doe@example.com" autocomplete="email">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" class="form-input" required placeholder="••••••••" autocomplete="new-password">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label for="password_confirm">Confirm Password</label>
+                <input type="password" name="password_confirm" id="password_confirm" class="form-input" required placeholder="••••••••" autocomplete="new-password">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1.5rem;">
+                Create Account <i data-lucide="user-plus"></i>
+            </button>
+            
+            <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                Already have an account? <a href="{% url 'login' %}" style="font-weight: 600; color: var(--primary);">Login</a>
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock %}

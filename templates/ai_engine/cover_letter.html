@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Cover Letter Generator - {{ resume.title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; padding-bottom: 2rem;">
+    <!-- Back Button -->
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'resume_detail' resume.pk %}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Resume
+        </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+        
+        <!-- Left Panel: Job Details Form -->
+        <div class="card" style="padding: 2rem;">
+            <h2 style="font-size: 1.6rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="mail" style="color: var(--primary);"></i> Cover Letter Creator
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                Generate a professional, persuasive, and fully customized cover letter that connects your resume experiences to this job.
+            </p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="job_title">Job Title</label>
+                    <input type="text" name="job_title" id="job_title" class="form-input" required placeholder="e.g., Senior Django Developer">
+                </div>
+                
+                <div class="form-group">
+                    <label for="company_name">Company Name</label>
+                    <input type="text" name="company_name" id="company_name" class="form-input" required placeholder="e.g., Google India">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="job_description">Job Description (Optional, for better alignment)</label>
+                    <textarea name="job_description" id="job_description" rows="8" class="form-input" placeholder="Paste the job requirements list here..." style="resize: vertical; font-size: 0.9rem;"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Generate Cover Letter <i data-lucide="sparkles"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Right Panel: Cover Letter Output -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            {% if cover_letter %}
+                <div class="card" style="padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 1.3rem;">Generated Letter</h3>
+                        <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="navigator.clipboard.writeText(document.getElementById('letter-content').innerText); this.innerHTML='<i data-lucide=\'check\'></i> Copied!'; setTimeout(()=>{this.innerHTML='<i data-lucide=\'copy\'></i> Copy Letter'}, 2000);">
+                            <i data-lucide="copy" style="width: 14px; height: 14px;"></i> Copy Letter
+                        </button>
+                    </div>
+                    
+                    <!-- Paper mockup display -->
+                    <div style="background: #FFFFFF; color: #1F2937; padding: 2.5rem; border-radius: var(--radius-md); font-family: 'Inter', Georgia, serif; font-size: 0.95rem; line-height: 1.7; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #E5E7EB; text-align: left;">
+                        <pre id="letter-content" style="white-space: pre-wrap; font-family: inherit; margin: 0;">{{ cover_letter }}</pre>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Cover Letter Empty state -->
+                <div class="card" style="padding: 5rem 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; border-style: dashed;">
+                    <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--text-muted);">
+                        <i data-lucide="mail-open"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Awaiting Generation</h3>
+                        <p style="color: var(--text-secondary); max-width: 320px; margin: 0 auto; font-size: 0.9rem;">Fill in the target job title and company on the left to draft your cover letter.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
