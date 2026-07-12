@@ -4,9 +4,10 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from django.db.models import Count
 from django.conf import settings
+from django.core.cache import cache
 from decouple import config
 from resumes.models import Resume
-from ai_engine.models import ATSFeedback
+from ai_engine.models import ATSFeedback, AIActionLog
 from ai_engine.utils import get_gemini_client
 
 User = get_user_model()
@@ -20,37 +21,60 @@ def is_admin(user):
 @user_passes_test(is_admin, login_url='login')
 def admin_dashboard(request):
     """
-    Renders system statistics, API status checks, and a user accounts management table.
+    Renders system statistics, system controls, API status, user accounts, and real-time AI action logs.
     """
-    # 1. Gather System Statistics
+    # 1. System Statistics
     total_users = User.objects.count()
     total_resumes = Resume.objects.count()
     total_scans = ATSFeedback.objects.count()
-    
-    # 2. Inspect API Configuration
+    total_ai_logs = AIActionLog.objects.count()
+
+    # 2. API Configuration
     gemini_key = config('GEMINI_API_KEY', default='')
     client = get_gemini_client()
-    
     api_configured = client is not None
     if gemini_key:
-        if len(gemini_key) > 10:
-            masked_key = f"{gemini_key[:8]}...{gemini_key[-8:]}"
-        else:
-            masked_key = "Configured (Invalid Format)"
+        masked_key = f"{gemini_key[:8]}...{gemini_key[-8:]}" if len(gemini_key) > 10 else "Configured (Invalid Format)"
     else:
         masked_key = "Not Configured"
-        
-    # 3. Retrieve User Accounts with Resume Counts
+
+    # 3. System Control Flags (stored in cache as simple toggles)
+    maintenance_mode = cache.get('admin_maintenance_mode', False)
+    api_logging      = cache.get('admin_api_logging', True)
+
+    # 4. Handle System Controls POST
+    if request.method == 'POST' and 'apply_system_changes' in request.POST:
+        maintenance_mode = 'maintenance_mode' in request.POST
+        api_logging      = 'api_logging' in request.POST
+        cache.set('admin_maintenance_mode', maintenance_mode, timeout=None)
+        cache.set('admin_api_logging', api_logging, timeout=None)
+        messages.success(request, 'System settings updated successfully.')
+        return redirect('admin_dashboard')
+
+    # 5. Clear AI logs action
+    if request.method == 'POST' and 'clear_logs' in request.POST:
+        AIActionLog.objects.all().delete()
+        messages.success(request, 'AI operation logs cleared.')
+        return redirect('admin_dashboard')
+
+    # 6. User accounts with resume count
     users = User.objects.annotate(resume_count=Count('resumes')).order_by('-date_joined')
-    
+
+    # 7. Recent AI Logs (latest 20)
+    ai_logs = AIActionLog.objects.select_related().all()[:20]
+
     context = {
-        'total_users': total_users,
-        'total_resumes': total_resumes,
-        'total_scans': total_scans,
-        'api_configured': api_configured,
-        'masked_key': masked_key,
-        'users_list': users,
-        'gemini_model': 'gemini-2.5-flash'
+        'total_users':       total_users,
+        'total_resumes':     total_resumes,
+        'total_scans':       total_scans,
+        'total_ai_logs':     total_ai_logs,
+        'api_configured':    api_configured,
+        'masked_key':        masked_key,
+        'users_list':        users,
+        'gemini_model':      'gemini-2.5-flash',
+        'maintenance_mode':  maintenance_mode,
+        'api_logging':       api_logging,
+        'ai_logs':           ai_logs,
     }
     return render(request, 'accounts/admin_panel.html', context)
 

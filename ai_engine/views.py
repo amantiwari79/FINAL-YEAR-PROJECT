@@ -1,8 +1,9 @@
+import time
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from resumes.models import Resume, ResumeVersion
-from .models import ATSFeedback
+from .models import ATSFeedback, AIActionLog
 from .utils import (
     calculate_ats_score,
     rewrite_bullet_points,
@@ -25,7 +26,9 @@ def ats_scan(request, resume_id):
             messages.error(request, 'Please provide a job description.')
             return redirect('ats_scan', resume_id=resume_id)
             
+        t0 = time.time()
         score, feedback_details = calculate_ats_score(resume.raw_text, job_description)
+        latency = round(time.time() - t0, 2)
         
         # Save to database
         feedback_report = ATSFeedback.objects.create(
@@ -33,6 +36,14 @@ def ats_scan(request, resume_id):
             score=score,
             job_description=job_description,
             feedback=feedback_details
+        )
+        # Log AI action
+        AIActionLog.objects.create(
+            action='ats_scan',
+            target_name=f"{resume.user.first_name} {resume.user.last_name} – {resume.title}",
+            tokens_used=len(resume.raw_text.split()) + len(job_description.split()),
+            latency_ms=latency,
+            status='success'
         )
         messages.success(request, 'ATS scan completed successfully!')
         
@@ -76,7 +87,16 @@ def bullet_improver(request, resume_id):
             submitted_bullets = [b.strip() for b in raw_bullets_text.split('\n') if b.strip()]
             
         if submitted_bullets:
+            t0 = time.time()
             rewritten_bullets = rewrite_bullet_points(submitted_bullets)
+            latency = round(time.time() - t0, 2)
+            AIActionLog.objects.create(
+                action='bullet_improver',
+                target_name=f"{resume.user.first_name} {resume.user.last_name} – {resume.title}",
+                tokens_used=sum(len(b.split()) for b in submitted_bullets),
+                latency_ms=latency,
+                status='success'
+            )
             messages.success(request, 'AI rewrite suggestion generated!')
             
     context = {
@@ -102,7 +122,16 @@ def cover_letter_view(request, resume_id):
         if not job_title or not company_name:
             messages.error(request, 'Job Title and Company Name are required.')
         else:
+            t0 = time.time()
             cover_letter = generate_cover_letter(resume.raw_text, job_title, company_name, job_description)
+            latency = round(time.time() - t0, 2)
+            AIActionLog.objects.create(
+                action='cover_letter',
+                target_name=f"{resume.user.first_name} {resume.user.last_name} – {job_title} @ {company_name}",
+                tokens_used=len(resume.raw_text.split()) + len(job_description.split()),
+                latency_ms=latency,
+                status='success'
+            )
             messages.success(request, 'Cover letter generated successfully!')
             
     context = {
@@ -131,12 +160,21 @@ def career_coach_view(request):
             chat_history.append({"role": "user", "content": user_message})
             
             # Generate assistant response
+            t0 = time.time()
             assistant_response = career_coach_chat(chat_history[:-1], user_message)
+            latency = round(time.time() - t0, 2)
             chat_history.append({"role": "assistant", "content": assistant_response})
             
             # Save history back to session
             request.session['chat_history'] = chat_history
             request.session.modified = True
+            AIActionLog.objects.create(
+                action='career_coach',
+                target_name=f"{request.user.first_name} {request.user.last_name}",
+                tokens_used=len(user_message.split()),
+                latency_ms=latency,
+                status='success'
+            )
             
     # Clear chat trigger
     if request.GET.get('clear') == '1':
@@ -161,7 +199,16 @@ def interview_prep_view(request, resume_id):
     if request.method == 'POST':
         job_description = request.POST.get('job_description', '').strip()
         if job_description:
+            t0 = time.time()
             prep_data = generate_interview_questions(resume.raw_text, job_description)
+            latency = round(time.time() - t0, 2)
+            AIActionLog.objects.create(
+                action='interview_prep',
+                target_name=f"{resume.user.first_name} {resume.user.last_name} – {resume.title}",
+                tokens_used=len(resume.raw_text.split()) + len(job_description.split()),
+                latency_ms=latency,
+                status='success'
+            )
             messages.success(request, 'Mock interview questions generated!')
             
     context = {
