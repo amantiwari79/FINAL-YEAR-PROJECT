@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: resume-analysis-ai
+    env: python
+    buildCommand: pip install -r requirements.txt && bash build.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: resume-analysis-with-geminiai.onrender.com
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
