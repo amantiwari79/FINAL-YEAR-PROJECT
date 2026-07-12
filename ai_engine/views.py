@@ -169,3 +169,33 @@ def interview_prep_view(request, resume_id):
         'prep_data': prep_data
     }
     return render(request, 'ai_engine/interview_prep.html', context)
+
+@login_required
+def job_matching_view(request):
+    """
+    Renders general Job Matching dashboard where candidates select a resume and paste a job description.
+    """
+    resumes = Resume.objects.filter(user=request.user)
+    
+    if request.method == 'POST':
+        resume_id = request.POST.get('resume_id')
+        job_description = request.POST.get('job_description', '').strip()
+        
+        if not resume_id or not job_description:
+            messages.error(request, 'Please select a resume and provide a job description.')
+            return redirect('job_matching')
+            
+        resume = get_object_or_404(Resume, pk=resume_id, user=request.user)
+        score, feedback_details = calculate_ats_score(resume.raw_text, job_description)
+        
+        # Save to database
+        ATSFeedback.objects.create(
+            resume=resume,
+            score=score,
+            job_description=job_description,
+            feedback=feedback_details
+        )
+        messages.success(request, f'Job matching scan for "{resume.title}" completed successfully!')
+        return redirect('ats_scan', resume_id=resume.pk)
+        
+    return render(request, 'ai_engine/job_matching.html', {'resumes': resumes})
