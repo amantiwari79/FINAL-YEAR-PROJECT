@@ -43,7 +43,10 @@ def login_user(request):
     Handles user authentication.
     """
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        if 'next' in request.GET:
+            logout(request)
+        else:
+            return redirect('dashboard')
 
     if request.method == 'POST':
         email = request.POST.get('email')
