@@ -45,6 +45,7 @@ def login_user(request):
     if request.user.is_authenticated:
         if 'next' in request.GET:
             logout(request)
+            return redirect(request.get_full_path())
         else:
             return redirect('dashboard')
 
