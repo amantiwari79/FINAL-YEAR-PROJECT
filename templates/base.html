@@ -38,10 +38,10 @@
                                 </button>
                             </form>
                         </li>
-                        <li><a href="{% url 'dashboard' %}" class="btn btn-primary"><i data-lucide="layout-dashboard"></i> Console</a></li>
+                        <li><a href="{% url 'dashboard' %}" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.85rem; border: 1.5px solid transparent;"><i data-lucide="layout-dashboard" style="width: 14px; height: 14px;"></i> Console</a></li>
                     {% else %}
                         <li><a href="{% url 'login' %}" class="nav-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}">Login</a></li>
-                        <li><a href="{% url 'register' %}" class="btn btn-primary">Get Started <i data-lucide="arrow-right"></i></a></li>
+                        <li><a href="{% url 'register' %}" class="btn btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.85rem; border: 1.5px solid transparent;">Get Started <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></a></li>
                     {% endif %}
                 </ul>
             </nav>
@@ -70,9 +70,9 @@
         <div class="container">
             <p style="margin-bottom: 1rem;">&copy; 2026 Resume Analysis AI+. All rights reserved.</p>
             <div style="display: flex; justify-content: center; gap: 1.5rem;">
-                <a href="#" class="nav-link">Privacy Policy</a>
-                <a href="#" class="nav-link">Terms of Service</a>
-                <a href="#" class="nav-link">Contact Support</a>
+                <a href="{% url 'privacy_policy' %}" class="nav-link">Privacy Policy</a>
+                <a href="{% url 'terms_conditions' %}" class="nav-link">Terms of Service</a>
+                <a href="{% url 'contact_support' %}" class="nav-link">Contact Support</a>
             </div>
         </div>
     </footer>

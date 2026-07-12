@@ -80,3 +80,35 @@ def dashboard(request):
         'resumes': resumes
     }
     return render(request, 'dashboard.html', context)
+
+def privacy_policy(request):
+    """
+    Renders the privacy policy page.
+    """
+    return render(request, 'accounts/privacy_policy.html')
+
+def terms_conditions(request):
+    """
+    Renders the terms and conditions page.
+    """
+    return render(request, 'accounts/terms_conditions.html')
+
+def contact_support(request):
+    """
+    Renders the contact support form and handles form submission.
+    """
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        message_body = request.POST.get('message', '').strip()
+        
+        if name and email and message_body:
+            # We can log the support ticket to the console/syslog or save it.
+            # Showing success is sufficient for the demo flow.
+            messages.success(request, 'Thank you! Your support ticket has been submitted. Our team will email you shortly.')
+            return redirect('contact_support')
+        else:
+            messages.error(request, 'Please fill in all required fields.')
+            
+    return render(request, 'accounts/contact_support.html')

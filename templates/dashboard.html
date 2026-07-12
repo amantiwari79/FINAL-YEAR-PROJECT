@@ -30,12 +30,14 @@
                     AI Career Coach
                 </a>
             </li>
+            {% if request.user.is_staff %}
             <li>
-                <a href="#" class="sidebar-link">
+                <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
                     <i data-lucide="settings"></i>
-                    Account Settings
+                    Admin Panel
                 </a>
             </li>
+            {% endif %}
         </ul>
         
         <div style="margin-top: auto; padding: 1rem; border-top: 1px solid var(--glass-border); display: flex; align-items: center; gap: 0.8rem;">

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms & Conditions - Resume Analysis AI+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 4rem; padding-bottom: 4rem; max-width: 800px;">
+    <div class="card" style="padding: 3rem; display: flex; flex-direction: column; gap: 2rem;">
+        <div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--primary);">Terms of Service</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Last Updated: July 12, 2026</p>
+        </div>
+
+        <section style="display: flex; flex-direction: column; gap: 1rem; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+            <p>Please read these Terms of Service ("Terms") carefully before using the <strong>Resume Analysis AI+</strong> web application. Access to services is conditioned on your acceptance of and compliance with these Terms.</p>
+
+            <h2 style="font-size: 1.4rem; color: var(--text-primary); margin-top: 1.5rem; font-family: var(--font-heading);">1. Use of Services</h2>
+            <p>Resume Analysis AI+ provides resume analysis, formatting feedback, and AI chatbot consultations. By uploading resumes, you warrant that you own or have permission to submit the content. You agree not to upload harmful code, illegal text, or defamatory credentials.</p>
+
+            <h2 style="font-size: 1.4rem; color: var(--text-primary); margin-top: 1.5rem; font-family: var(--font-heading);">2. AI Content Disclaimer</h2>
+            <p>Our algorithms generate automated suggestions (e.g. cover letters, career chats, ATS scores). While optimized, these recommendations do not guarantee employment, interviews, or hiring outcomes. The user assumes full responsibility for editing and verifying resume changes before applications.</p>
+
+            <h2 style="font-size: 1.4rem; color: var(--text-primary); margin-top: 1.5rem; font-family: var(--font-heading);">3. Account Suspension</h2>
+            <p>Administrators of Resume Analysis AI+ reserve the right to suspend or deactivate user profiles (via the control panel) that engage in malicious activity, high-volume automation testing, or system abuse.</p>
+
+            <h2 style="font-size: 1.4rem; color: var(--text-primary); margin-top: 1.5rem; font-family: var(--font-heading);">4. Liability Limitations</h2>
+            <p>Under no circumstances shall Resume Analysis AI+ or its developers be held liable for any direct, indirect, incidental, or consequential damages resulting from connection failures, data loss, API service degradation, or incorrect AI results.</p>
+        </section>
+
+        <div style="border-top: 1px solid var(--glass-border); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <a href="{% url 'landing' %}" class="btn btn-secondary"><i data-lucide="arrow-left"></i> Back to Home</a>
+            <a href="{% url 'privacy_policy' %}" class="btn btn-text">Privacy Policy <i data-lucide="arrow-right"></i></a>
+        </div>
+    </div>
+</div>
+{% endblock %}
