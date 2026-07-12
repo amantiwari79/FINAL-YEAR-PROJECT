@@ -20,12 +20,10 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-local-dev-secret-key-
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    ".onrender.com",
-    "resume-analysis-with-geminiai.onrender.com",
-]
+ALLOWED_HOSTS = [host.strip() for host in config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',') if host.strip()]
+for host in ['resume-analysis-with-geminiai.onrender.com', '.onrender.com']:
+    if host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
 
 # Application definition
 
