@@ -34,6 +34,28 @@
                 Don't have an account? <a href="{% url 'register' %}" style="font-weight: 600; color: var(--primary);">Sign Up</a>
             </p>
         </form>
+
+        <!-- Admin Portal Options -->
+        <div style="margin-top: 1.5rem; padding-top: 1.2rem; border-top: 1px solid var(--glass-border); text-align: center;">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.8rem;">System Administrator?</p>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary" style="flex: 1; padding: 0.5rem; font-size: 0.8rem; border-color: var(--secondary); color: var(--secondary); background: none;" onclick="fillAdmin()">
+                    <i data-lucide="key" style="width: 14px; height: 14px;"></i> Autofill Admin
+                </button>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary" style="flex: 1; padding: 0.5rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); background: none;">
+                    <i data-lucide="shield" style="width: 14px; height: 14px;"></i> Admin Portal
+                </a>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function fillAdmin() {
+        document.getElementById('email').value = 'admin@123gmail.com';
+        document.getElementById('password').value = 'admin@123';
+    }
+</script>
 {% endblock %}
