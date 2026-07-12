@@ -1,123 +1,136 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 
 {% block title %}ATS Score Scan - {{ resume.title }}{% endblock %}
 
 {% block content %}
-<div class="container" style="padding-top: 2rem; padding-bottom: 2rem;">
-    <!-- Back Button -->
-    <div style="margin-bottom: 1.5rem;">
-        <a href="{% url 'resume_detail' resume.pk %}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Resume
-        </a>
+<div class="page-header">
+    <div>
+        <h1>ATS Match Scanner</h1>
+        <p>Scanning: <strong>{{ resume.title }}</strong> — v{{ resume.current_version }}</p>
+    </div>
+    <a href="{% url 'resume_detail' resume.pk %}" class="back-link">
+        <i data-lucide="arrow-left"></i> Back to Resume
+    </a>
+</div>
+
+<div class="grid-2" style="align-items: start;">
+
+    <!-- Left Panel: Input -->
+    <div class="card card-padded" style="padding: 1.8rem;">
+        <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.6rem;">
+            <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                <i data-lucide="scan-line" style="width: 18px; height: 18px;"></i>
+            </div>
+            <h2 style="font-size: 1rem; font-weight: 700; color: var(--text-primary);">Job Description</h2>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1.4rem; line-height: 1.5;">
+            Paste the target job description below to scan your resume against its criteria and get a keyword match score.
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="job_description">Target Job Description</label>
+                <textarea name="job_description" id="job_description" rows="14" class="form-input" required
+                    placeholder="Paste the job requirements, duties, and skills list here...">{% if feedback_report %}{{ feedback_report.job_description }}{% endif %}</textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+                <i data-lucide="zap"></i> Analyze Compatibility
+            </button>
+        </form>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
-        
-        <!-- Left Panel: Job Description Input -->
-        <div class="card" style="padding: 2rem;">
-            <h2 style="font-size: 1.6rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="target" style="color: var(--primary);"></i> ATS Match Scanner
-            </h2>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
-                Paste the target job description below to scan your resume against its criteria.
-            </p>
-            
-            <form method="POST">
-                {% csrf_token %}
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <label for="job_description">Job Description</label>
-                    <textarea name="job_description" id="job_description" rows="12" class="form-input" required placeholder="Paste the job requirements, duties, and skills list here..." style="resize: vertical; font-family: var(--font-body); font-size: 0.9rem; line-height: 1.5;">{% if feedback_report %}{{ feedback_report.job_description }}{% endif %}</textarea>
-                </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    Analyze Compatibility <i data-lucide="zap"></i>
-                </button>
-            </form>
-        </div>
+    <!-- Right Panel: Results -->
+    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+        {% if feedback_report %}
 
-        <!-- Right Panel: Scan Output -->
-        <div style="display: flex; flex-direction: column; gap: 2rem;">
-            {% if feedback_report %}
-                <!-- Score Breakdown -->
-                <div class="card" style="padding: 2rem; text-align: center;">
-                    <h3 style="font-size: 1.4rem; margin-bottom: 1.5rem; text-align: left;">Scan Report</h3>
-                    
-                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 100%); border: 6px solid {% if feedback_report.score >= 80 %}var(--success){% elif feedback_report.score >= 60 %}var(--warning){% else %}var(--danger){% endif %}; margin-bottom: 1rem;">
-                        <span style="font-size: 3rem; font-weight: 800; font-family: var(--font-heading); color: #FFFFFF;">{{ feedback_report.score }}<span style="font-size: 1.5rem; font-weight: 500;">%</span></span>
-                    </div>
-                    
-                    <h4 style="font-size: 1.2rem; color: {% if feedback_report.score >= 80 %}var(--success){% elif feedback_report.score >= 60 %}var(--warning){% else %}var(--danger){% endif %}; font-family: var(--font-heading); margin-bottom: 1rem;">
-                        {% if feedback_report.score >= 80 %}Highly Compatible{% elif feedback_report.score >= 60 %}Moderately Compatible{% else %}Action Required{% endif %}
-                    </h4>
-                    
-                    <p style="color: var(--text-secondary); text-align: left; font-size: 0.95rem; line-height: 1.6; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
-                        {{ feedback_report.feedback.overall_assessment }}
-                    </p>
+            <!-- Score Card -->
+            <div class="card card-padded" style="padding: 1.8rem; text-align: center;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">Scan Report</h3>
+                    <span class="badge {% if feedback_report.score >= 80 %}badge-green{% elif feedback_report.score >= 60 %}badge-gold{% else %}badge-red{% endif %}">
+                        {% if feedback_report.score >= 80 %}Highly Compatible{% elif feedback_report.score >= 60 %}Moderate Match{% else %}Action Required{% endif %}
+                    </span>
                 </div>
 
-                <!-- Skills Analysis -->
-                <div class="card" style="padding: 2rem;">
-                    <h3 style="font-size: 1.3rem; margin-bottom: 1.2rem;">Keywords & Skills</h3>
-                    
-                    <!-- Matching Skills -->
-                    <div style="margin-bottom: 1.5rem;">
-                        <h4 style="font-size: 0.9rem; text-transform: uppercase; color: var(--success); font-weight: 700; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.3rem;">
-                            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> Matching Keywords
-                        </h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                            {% for skill in feedback_report.feedback.matching_skills %}
-                                <span style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 0.3rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500; color: #D1FAE5;">
-                                    {{ skill }}
-                                </span>
-                            {% empty %}
-                                <span style="font-size: 0.9rem; color: var(--text-muted)">No matching keywords found yet.</span>
-                            {% endfor %}
+                <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 1.5rem;">
+                    <div style="position: relative; width: 110px; height: 110px;">
+                        <svg viewBox="0 0 36 36" style="width: 110px; height: 110px; transform: rotate(-90deg);">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--border)" stroke-width="2.5"/>
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
+                                stroke="{% if feedback_report.score >= 80 %}var(--success){% elif feedback_report.score >= 60 %}var(--warning){% else %}var(--danger){% endif %}"
+                                stroke-width="2.5"
+                                stroke-dasharray="{{ feedback_report.score }}, 100"/>
+                        </svg>
+                        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); line-height: 1;">{{ feedback_report.score }}</span>
+                            <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">ATS%</span>
                         </div>
                     </div>
-
-                    <!-- Missing Skills -->
-                    <div>
-                        <h4 style="font-size: 0.9rem; text-transform: uppercase; color: var(--warning); font-weight: 700; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.3rem;">
-                            <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i> Missing Keywords
-                        </h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                            {% for keyword in feedback_report.feedback.missing_keywords %}
-                                <span style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); padding: 0.3rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500; color: #FEF3C7;">
-                                    {{ keyword }}
-                                </span>
-                            {% empty %}
-                                <span style="font-size: 0.9rem; color: var(--success)">Excellent! You have hit all major target keywords.</span>
-                            {% endfor %}
-                        </div>
+                    <div style="text-align: left;">
+                        <p style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 0.3rem;">Assessment</p>
+                        <p style="font-size: 0.88rem; color: var(--text-primary); line-height: 1.5; max-width: 200px;">{{ feedback_report.feedback.overall_assessment|truncatewords:25 }}</p>
                     </div>
                 </div>
+            </div>
 
-                <!-- Suggestions List -->
-                <div class="card" style="padding: 2rem;">
-                    <h3 style="font-size: 1.3rem; margin-bottom: 1rem;">Actionable Suggestions</h3>
-                    <ul style="list-style: none; display: flex; flex-direction: column; gap: 1rem;">
-                        {% for suggestion in feedback_report.feedback.suggestions %}
-                            <li style="display: flex; gap: 0.8rem; align-items: flex-start; font-size: 0.95rem; line-height: 1.5; color: var(--text-primary);">
-                                <i data-lucide="check-square" style="width: 18px; height: 18px; color: var(--primary); flex-shrink: 0; margin-top: 0.2rem;"></i>
-                                <span>{{ suggestion }}</span>
-                            </li>
+            <!-- Keywords -->
+            <div class="card card-padded" style="padding: 1.5rem;">
+                <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1.2rem; color: var(--text-primary);">Keywords & Skills</h3>
+
+                <div style="margin-bottom: 1.2rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem;">
+                        <i data-lucide="check-circle" style="width: 14px; height: 14px; color: var(--success);"></i>
+                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--success);">Matching Keywords</span>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        {% for skill in feedback_report.feedback.matching_skills %}
+                            <span style="background: var(--success-light); border: 1px solid rgba(22,163,74,0.2); padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; color: var(--success);">{{ skill }}</span>
+                        {% empty %}
+                            <span style="font-size: 0.82rem; color: var(--text-muted);">No matching keywords found yet.</span>
                         {% endfor %}
-                    </ul>
-                </div>
-            {% else %}
-                <!-- Scan Empty state -->
-                <div class="card" style="padding: 4rem 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; border-style: dashed;">
-                    <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--text-muted);">
-                        <i data-lucide="play-circle"></i>
-                    </div>
-                    <div>
-                        <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Awaiting Scan</h3>
-                        <p style="color: var(--text-secondary); max-width: 320px; margin: 0 auto; font-size: 0.9rem;">Paste a job description on the left and click 'Analyze Compatibility' to start scanning.</p>
                     </div>
                 </div>
-            {% endif %}
-        </div>
 
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem;">
+                        <i data-lucide="alert-circle" style="width: 14px; height: 14px; color: var(--warning);"></i>
+                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--warning);">Missing Keywords</span>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        {% for keyword in feedback_report.feedback.missing_keywords %}
+                            <span style="background: var(--warning-light); border: 1px solid rgba(217,119,6,0.2); padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; color: var(--warning);">{{ keyword }}</span>
+                        {% empty %}
+                            <span style="font-size: 0.82rem; color: var(--success); font-weight: 500;">✓ All major keywords matched!</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suggestions -->
+            <div class="card card-padded" style="padding: 1.5rem;">
+                <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Actionable Suggestions</h3>
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem;">
+                    {% for suggestion in feedback_report.feedback.suggestions %}
+                        <li style="display: flex; gap: 0.7rem; align-items: flex-start; font-size: 0.85rem; color: var(--text-primary); line-height: 1.5;">
+                            <i data-lucide="check-square" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; margin-top: 0.1rem;"></i>
+                            {{ suggestion }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state" style="padding: 3rem 2rem;">
+                <div class="empty-icon">
+                    <i data-lucide="target"></i>
+                </div>
+                <h3>Awaiting Scan</h3>
+                <p>Paste a job description on the left and click "Analyze Compatibility" to start scanning your resume.</p>
+            </div>
+        {% endif %}
     </div>
+
 </div>
 {% endblock %}

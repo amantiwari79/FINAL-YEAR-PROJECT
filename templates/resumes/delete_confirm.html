@@ -1,27 +1,43 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 
 {% block title %}Delete Resume - Resume Analysis AI+{% endblock %}
 
 {% block content %}
-<div class="container form-wrapper">
-    <div class="card auth-card" style="max-width: 500px; text-align: center; border-color: rgba(239, 68, 68, 0.3);">
-        <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--danger); margin: 0 auto 1.5rem;">
-            <i data-lucide="alert-triangle"></i>
-        </div>
-        
-        <h2 style="font-size: 1.8rem; margin-bottom: 0.8rem; color: #FFFFFF;">Delete Resume?</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem;">
-            Are you sure you want to delete "<strong>{{ resume.title }}</strong>"? This will permanently remove the resume, all parsed data, and its version history. This action cannot be undone.
-        </p>
-        
-        <form method="POST">
-            {% csrf_token %}
-            <div style="display: flex; gap: 1rem;">
-                <a href="{% url 'resume_detail' resume.pk %}" class="btn btn-secondary" style="flex: 1;">Cancel</a>
-                <button type="submit" class="btn btn-primary" style="flex: 1; background: linear-gradient(135deg, var(--danger) 0%, #DC2626 100%); box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);">
-                    Confirm Delete
-                </button>
+<div class="page-header">
+    <div>
+        <h1>Delete Resume</h1>
+        <p>This action is permanent and cannot be undone.</p>
+    </div>
+    <a href="{% url 'resume_detail' resume.pk %}" class="back-link">
+        <i data-lucide="arrow-left"></i> Back to Resume
+    </a>
+</div>
+
+<div style="max-width: 480px;">
+    <div class="card card-padded" style="padding: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1.2rem; background: var(--danger-light); border: 1px solid rgba(220,38,38,0.2); border-radius: var(--radius-sm); margin-bottom: 1.5rem;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(220,38,38,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--danger);">
+                <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
             </div>
+            <div>
+                <p style="font-weight: 700; font-size: 0.9rem; color: var(--danger);">Warning: Irreversible Action</p>
+                <p style="font-size: 0.8rem; color: var(--danger); opacity: 0.8; margin-top: 0.1rem;">All versions and AI scan data will be permanently deleted.</p>
+            </div>
+        </div>
+
+        <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
+            Are you sure you want to delete <strong style="color: var(--text-primary);">"{{ resume.title }}"</strong>? 
+            This will remove all associated versions and AI analysis data from your workspace.
+        </p>
+
+        <form method="POST" style="display: flex; gap: 0.8rem;">
+            {% csrf_token %}
+            <a href="{% url 'resume_detail' resume.pk %}" class="btn-secondary" style="flex: 1; justify-content: center;">
+                <i data-lucide="x"></i> Cancel
+            </a>
+            <button type="submit" class="btn-danger" style="flex: 1; justify-content: center;">
+                <i data-lucide="trash-2"></i> Delete Permanently
+            </button>
         </form>
     </div>
 </div>

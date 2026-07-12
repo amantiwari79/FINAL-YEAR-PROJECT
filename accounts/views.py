@@ -77,11 +77,25 @@ from resumes.models import Resume
 @login_required
 def dashboard(request):
     """
-    Renders the candidate's workspace dashboard.
+    Renders the candidate's workspace dashboard with enriched stats.
     """
+    from ai_engine.models import ATSFeedback
+    from django.db.models import Avg
+
     resumes = Resume.objects.filter(user=request.user)
+
+    # Avg ATS score across all user's resumes
+    avg_data = ATSFeedback.objects.filter(resume__user=request.user).aggregate(avg=Avg('score'))
+    avg_ats  = avg_data['avg']
+    avg_ats_score = f"{round(avg_ats)}%" if avg_ats else "N/A"
+
+    # Total AI scans run
+    total_scans = ATSFeedback.objects.filter(resume__user=request.user).count()
+
     context = {
-        'resumes': resumes
+        'resumes':        resumes,
+        'avg_ats_score':  avg_ats_score,
+        'total_scans':    total_scans,
     }
     return render(request, 'dashboard.html', context)
 

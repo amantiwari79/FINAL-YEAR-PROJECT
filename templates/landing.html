@@ -2,13 +2,50 @@
 
 {% block title %}Resume Analysis AI+ - ATS-Optimized AI Resume Builder & Coach{% endblock %}
 
+{% block extra_head %}
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes textShimmer {
+        to { background-position: 200% center; }
+    }
+
+    .animated-title {
+        opacity: 0;
+        animation: fadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: 0.15s;
+    }
+
+    .shimmer-gemini {
+        background: linear-gradient(to right, #1a73e8 0%, #9333ea 25%, #ec4899 50%, #60a5fa 75%, #1a73e8 100%);
+        background-size: 200% auto;
+        color: transparent;
+        -webkit-background-clip: text;
+        background-clip: text;
+        animation: textShimmer 3s linear infinite;
+        display: inline-block;
+        font-weight: 800;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     
     <!-- Hero Section -->
     <section class="hero">
         <span class="badge">Introducing Resume Analysis AI+ 2.0</span>
-        <h1>Craft the Perfect Resume with the <span>Power of AI</span></h1>
+        <h1 class="animated-title">Craft the Perfect Resume with the<br>
+            <span class="shimmer-gemini">Power of Gemini AI+</span></h1>
         <p>Upload your current CV, parse key details instantly, get an ATS score check, and write high-impact cover letters tailormade for top recruiters.</p>
         <div class="hero-actions">
             {% if user.is_authenticated %}

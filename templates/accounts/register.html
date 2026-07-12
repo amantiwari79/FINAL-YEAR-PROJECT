@@ -1,52 +1,51 @@
-{% extends 'base.html' %}
+{% extends 'base_auth.html' %}
 
 {% block title %}Create Account - Resume Analysis AI+{% endblock %}
 
 {% block content %}
-<div class="container form-wrapper">
-    <div class="card auth-card" style="max-width: 520px;">
-        <div class="form-header">
-            <h2>Get Started</h2>
-            <p>Create your free Resume Analysis AI+ account</p>
-        </div>
-        
-        <form method="POST">
-            {% csrf_token %}
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label for="first_name">First Name</label>
-                    <input type="text" name="first_name" id="first_name" class="form-input" required placeholder="John">
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label for="last_name">Last Name</label>
-                    <input type="text" name="last_name" id="last_name" class="form-input" required placeholder="Doe">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" name="email" id="email" class="form-input" required placeholder="john.doe@example.com" autocomplete="email">
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" name="password" id="password" class="form-input" required placeholder="••••••••" autocomplete="new-password">
-            </div>
-            
-            <div class="form-group" style="margin-bottom: 2rem;">
-                <label for="password_confirm">Confirm Password</label>
-                <input type="password" name="password_confirm" id="password_confirm" class="form-input" required placeholder="••••••••" autocomplete="new-password">
-            </div>
-            
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1.5rem;">
-                Create Account <i data-lucide="user-plus"></i>
-            </button>
-            
-            <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
-                Already have an account? <a href="{% url 'login' %}" style="font-weight: 600; color: var(--primary);">Login</a>
-            </p>
-        </form>
-    </div>
+<div class="auth-card-header">
+    <h2>Get Started Free</h2>
+    <p>Create your Resume Analysis AI+ account in seconds.</p>
 </div>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.2rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="first_name">First Name</label>
+            <input type="text" name="first_name" id="first_name" class="form-input" required placeholder="John">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="last_name">Last Name</label>
+            <input type="text" name="last_name" id="last_name" class="form-input" required placeholder="Doe">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" name="email" id="email" class="form-input" required
+            placeholder="john.doe@example.com" autocomplete="email">
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" class="form-input" required
+            placeholder="••••••••" autocomplete="new-password">
+    </div>
+
+    <div class="form-group" style="margin-bottom: 1.6rem;">
+        <label for="password_confirm">Confirm Password</label>
+        <input type="password" name="password_confirm" id="password_confirm" class="form-input" required
+            placeholder="••••••••" autocomplete="new-password">
+    </div>
+
+    <button type="submit" class="btn-primary" style="margin-bottom: 1.2rem;">
+        <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i> Create Account
+    </button>
+
+    <p style="text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
+        Already have an account? <a href="{% url 'login' %}" style="font-weight: 600; color: var(--primary); text-decoration: none;">Login</a>
+    </p>
+</form>
 {% endblock %}

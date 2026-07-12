@@ -1,82 +1,207 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 
 {% block title %}AI Career Advisor - Resume Analysis AI+{% endblock %}
+{% block nav_career_coach %}active{% endblock %}
+
+{% block extra_css %}
+.chat-container {
+    display: flex;
+    gap: 1.5rem;
+    height: calc(100vh - 11rem);
+}
+
+.coach-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#chat-log {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    padding-right: 1rem;
+}
+
+#chat-log::-webkit-scrollbar { width: 4px; }
+#chat-log::-webkit-scrollbar-track { background: transparent; }
+#chat-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.msg-ai, .msg-user {
+    display: flex;
+    gap: 0.7rem;
+    max-width: 82%;
+}
+
+.msg-ai { align-self: flex-start; }
+.msg-user { align-self: flex-end; flex-direction: row-reverse; }
+
+.msg-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700;
+    flex-shrink: 0;
+}
+
+.msg-avatar.ai-avatar {
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid rgba(10,92,54,0.2);
+}
+
+.msg-avatar.user-avatar {
+    background: var(--primary);
+    color: #fff;
+}
+
+.msg-bubble {
+    padding: 0.75rem 1rem;
+    border-radius: 0 var(--radius) var(--radius) var(--radius);
+    font-size: 0.88rem;
+    line-height: 1.55;
+}
+
+.msg-ai .msg-bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 0 var(--radius) var(--radius) var(--radius);
+}
+
+.msg-user .msg-bubble {
+    background: var(--primary);
+    color: #fff;
+    border-radius: var(--radius) 0 var(--radius) var(--radius);
+}
+
+.chat-input-bar {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 0.8rem;
+    background: var(--surface);
+}
+{% endblock %}
 
 {% block content %}
-<div class="container" style="padding-top: 2rem; padding-bottom: 2rem;">
-    
-    <div style="display: grid; grid-template-columns: 280px 1fr; gap: 2rem; min-height: 70vh; max-height: 80vh;">
-        
-        <!-- Left Sidebar: Coach Info -->
-        <div class="card" style="padding: 1.8rem; display: flex; flex-direction: column; gap: 1.5rem; justify-content: space-between;">
-            <div>
-                <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: #FFFFFF; margin: 0 auto 0.8rem; box-shadow: 0 4px 14px var(--primary-glow);">
-                        <i data-lucide="bot"></i>
-                    </div>
-                    <h2 style="font-size: 1.3rem; margin-bottom: 0.2rem;">AI Career Advisor</h2>
-                    <span style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--success); font-weight: 600;">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success); display: inline-block;"></span> Online
-                    </span>
-                </div>
-                
-                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
-                    Get contextual feedback on resume improvements, interview questions, scaling salaries, and selecting target job roles.
-                </p>
-            </div>
-            
-            <a href="?clear=1" class="btn btn-secondary" style="width: 100%; border-color: rgba(239, 68, 68, 0.2); color: var(--danger); background: rgba(239, 68, 68, 0.02);">
-                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i> Clear Chat History
-            </a>
-        </div>
+<div class="page-header" style="margin-bottom: 0;">
+    <div>
+        <h1>AI Career Advisor</h1>
+        <p>Get expert guidance on interviews, salary, CV critiques, and career strategy.</p>
+    </div>
+    <span style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--success); font-weight: 600; padding: 0.3rem 0.8rem; background: var(--success-light); border-radius: 999px; border: 1px solid rgba(22,163,74,0.2);">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: var(--success); display: inline-block;"></span> Online
+    </span>
+</div>
 
-        <!-- Right Panel: Message Client -->
-        <div class="card" style="padding: 1.5rem; display: flex; flex-direction: column; height: 100%; justify-content: space-between;">
-            <!-- Message Log -->
-            <div id="chat-log" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding-right: 0.5rem; margin-bottom: 1.5rem; max-height: calc(70vh - 120px);">
-                {% for message in chat_history %}
-                    {% if message.role == 'assistant' %}
-                        <!-- Assistant Message bubble -->
-                        <div style="display: flex; gap: 0.8rem; max-width: 80%; align-self: flex-start;">
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-surface-elevated); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; color: var(--secondary); flex-shrink: 0; font-size: 0.9rem;">
-                                <i data-lucide="bot" style="width: 16px; height: 16px;"></i>
-                            </div>
-                            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 0.8rem 1.2rem; border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md); font-size: 0.95rem; line-height: 1.5; color: var(--text-primary);">
-                                {{ message.content|linebreaksbr }}
-                            </div>
-                        </div>
-                    {% else %}
-                        <!-- User Message bubble -->
-                        <div style="display: flex; gap: 0.8rem; max-width: 80%; align-self: flex-end; justify-content: flex-end;">
-                            <div style="background: var(--primary-glow); border: 1px solid rgba(99, 102, 241, 0.2); padding: 0.8rem 1.2rem; border-radius: var(--radius-md) 0 var(--radius-md) var(--radius-md); font-size: 0.95rem; line-height: 1.5; color: #FFFFFF; text-align: right;">
-                                {{ message.content }}
-                            </div>
-                            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #FFFFFF; flex-shrink: 0; font-weight: 700; font-size: 0.8rem;">
-                                ME
-                            </div>
-                        </div>
-                    {% endif %}
+<div class="chat-container">
+
+    <!-- Coach Info Sidebar -->
+    <div class="coach-sidebar">
+        <div class="card" style="flex: 1; display: flex; flex-direction: column; padding: 1.5rem;">
+            <div style="text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--border);">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.8rem; box-shadow: 0 4px 14px rgba(10,92,54,0.2);">
+                    <i data-lucide="bot" style="width: 28px; height: 28px; color: #fff;"></i>
+                </div>
+                <h2 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.2rem;">Career Advisor AI</h2>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Powered by Gemini</p>
+            </div>
+
+            <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; flex: 1;">
+                Get contextual feedback on resume improvements, interview questions, salary negotiations, and career path strategy.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <p style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Ask me about</p>
+                {% for topic in topics %}
+                <span style="font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.4rem;">
+                    <i data-lucide="chevron-right" style="width: 12px; height: 12px; color: var(--primary);"></i>
+                    {{ topic }}
+                </span>
+                {% empty %}
+                <span style="font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.4rem;"><i data-lucide="chevron-right" style="width: 12px; height: 12px; color: var(--primary);"></i> Resume Critique</span>
+                <span style="font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.4rem;"><i data-lucide="chevron-right" style="width: 12px; height: 12px; color: var(--primary);"></i> Interview Tips</span>
+                <span style="font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.4rem;"><i data-lucide="chevron-right" style="width: 12px; height: 12px; color: var(--primary);"></i> Salary Ranges</span>
+                <span style="font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.4rem;"><i data-lucide="chevron-right" style="width: 12px; height: 12px; color: var(--primary);"></i> Job Strategy</span>
+                <span style="font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.4rem;"><i data-lucide="chevron-right" style="width: 12px; height: 12px; color: var(--primary);"></i> Career Growth</span>
                 {% endfor %}
             </div>
 
-            <!-- Input area Form -->
-            <form method="POST" style="display: flex; gap: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
-                {% csrf_token %}
-                <input type="text" name="message" id="message-input" required placeholder="Ask about interview tips, salary bounds, CV critiques..." class="form-input" style="flex: 1; border-radius: var(--radius-md);" autocomplete="off">
-                <button type="submit" class="btn btn-primary" style="padding: 0 1.8rem;">
-                    Send <i data-lucide="send" style="width: 16px; height: 16px;"></i>
-                </button>
-            </form>
+            <a href="?clear=1" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 500; color: var(--danger); border: 1px solid rgba(220,38,38,0.2); background: var(--danger-light); text-decoration: none; transition: all 0.15s; justify-content: center;" onmouseover="this.style.background='var(--danger)'; this.style.color='#fff';" onmouseout="this.style.background='var(--danger-light)'; this.style.color='var(--danger)';">
+                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Clear Chat History
+            </a>
+        </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="card chat-main">
+        <!-- Messages -->
+        <div id="chat-log">
+            {% if not chat_history %}
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 1rem; text-align: center; color: var(--text-muted);">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="message-circle" style="width: 26px; height: 26px; color: var(--primary);"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem;">Start a Conversation</p>
+                    <p style="font-size: 0.82rem;">Ask about interview tips, resume critique, or career advice.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% for message in chat_history %}
+                {% if message.role == 'assistant' %}
+                <div class="msg-ai">
+                    <div class="msg-avatar ai-avatar"><i data-lucide="bot" style="width: 14px; height: 14px;"></i></div>
+                    <div class="msg-bubble">{{ message.content|linebreaksbr }}</div>
+                </div>
+                {% else %}
+                <div class="msg-user">
+                    <div class="msg-avatar user-avatar">{{ user.first_name|slice:":1"|default:"U" }}</div>
+                    <div class="msg-bubble">{{ message.content }}</div>
+                </div>
+                {% endif %}
+            {% endfor %}
         </div>
 
+        <!-- Input Bar -->
+        <form method="POST" class="chat-input-bar">
+            {% csrf_token %}
+            <input type="text" name="message" id="message-input" required
+                placeholder="Ask about interview tips, salary, CV critiques..."
+                class="form-input" style="flex: 1;" autocomplete="off">
+            <button type="submit" class="btn-primary" style="padding: 0 1.4rem; height: 42px;">
+                <i data-lucide="send"></i> Send
+            </button>
+        </form>
     </div>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Automatically scroll chat log to the bottom
     const chatLog = document.getElementById('chat-log');
-    chatLog.scrollTop = chatLog.scrollHeight;
+    if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
+
+    // Enter key to submit
+    document.getElementById('message-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.closest('form').submit();
+        }
+    });
 </script>
 {% endblock %}

@@ -1,100 +1,110 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 
 {% block title %}AI Bullet Improver - {{ resume.title }}{% endblock %}
 
 {% block content %}
-<div class="container" style="padding-top: 2rem; padding-bottom: 2rem;">
-    <!-- Back Button -->
-    <div style="margin-bottom: 1.5rem;">
-        <a href="{% url 'resume_detail' resume.pk %}" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
-            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Resume
-        </a>
+<div class="page-header">
+    <div>
+        <h1>Bullet Point Improver</h1>
+        <p>Resume: <strong>{{ resume.title }}</strong> — AI-powered rewriting with metrics</p>
     </div>
+    <a href="{% url 'resume_detail' resume.pk %}" class="back-link">
+        <i data-lucide="arrow-left"></i> Back to Resume
+    </a>
+</div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
-        
-        <!-- Left Panel: Original Bullets Form -->
-        <div class="card" style="padding: 2rem;">
-            <h2 style="font-size: 1.6rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="wand2" style="color: var(--primary);"></i> AI Bullet Point Improver
-            </h2>
-            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
-                Improve your resume's experience statements by converting plain tasks into high-impact, metrics-driven achievements.
-            </p>
-            
-            <form method="POST">
-                {% csrf_token %}
-                <h3 style="font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; color: #FFFFFF;">Current Bullet Points</h3>
-                
-                <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+<div class="grid-2" style="align-items: start;">
+
+    <!-- Left Panel: Bullet Selection -->
+    <div class="card card-padded" style="padding: 1.8rem;">
+        <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.6rem;">
+            <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: rgba(184,144,71,0.1); display: flex; align-items: center; justify-content: center; color: var(--secondary);">
+                <i data-lucide="wand-2" style="width: 18px; height: 18px;"></i>
+            </div>
+            <h2 style="font-size: 1rem; font-weight: 700; color: var(--text-primary);">Select Bullets</h2>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1.4rem; line-height: 1.5;">
+            Select existing bullets or add custom ones to rewrite with AI-powered metrics and action verbs.
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if original_bullets %}
+            <div style="margin-bottom: 1.5rem;">
+                <p style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.8rem;">Current Experience Bullets</p>
+                <div style="display: flex; flex-direction: column; gap: 0.6rem;">
                     {% for bullet in original_bullets %}
-                        <div style="display: flex; gap: 0.8rem; align-items: flex-start; background: rgba(255, 255, 255, 0.01); border: 1px solid var(--glass-border); padding: 0.8rem; border-radius: var(--radius-sm);">
-                            <input type="checkbox" name="bullets" value="{{ bullet }}" checked style="margin-top: 0.3rem; cursor: pointer;">
-                            <span style="font-size: 0.9rem; color: var(--text-primary);">{{ bullet }}</span>
-                        </div>
+                    <label style="display: flex; gap: 0.8rem; align-items: flex-start; background: var(--bg); border: 1px solid var(--border); padding: 0.8rem; border-radius: var(--radius-sm); cursor: pointer; transition: border-color 0.15s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                        <input type="checkbox" name="bullets" value="{{ bullet }}" checked style="margin-top: 0.2rem; accent-color: var(--primary); cursor: pointer;">
+                        <span style="font-size: 0.85rem; color: var(--text-primary); line-height: 1.5;">{{ bullet }}</span>
+                    </label>
                     {% endfor %}
                 </div>
-                
-                <div class="form-group" style="margin-top: 1.5rem;">
-                    <label for="raw_bullets">Or custom bullet points (one per line):</label>
-                    <textarea name="raw_bullets" id="raw_bullets" rows="4" class="form-input" placeholder="e.g., Developed backend app.&#10;Helped fix database problems." style="resize: vertical; font-size: 0.9rem;"></textarea>
-                </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-                    Improve Selected Bullets <i data-lucide="sparkles"></i>
-                </button>
-            </form>
-        </div>
-
-        <!-- Right Panel: AI Suggestions Comparison -->
-        <div style="display: flex; flex-direction: column; gap: 2rem;">
-            {% if rewritten_bullets %}
-                <div class="card" style="padding: 2rem;">
-                    <h3 style="font-size: 1.4rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i data-lucide="check-check" style="color: var(--success);"></i> AI Rewrite Results
-                    </h3>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                        {% for item in rewritten_bullets %}
-                            <div style="border-bottom: 1px solid var(--glass-border); padding-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem;">
-                                <!-- Original -->
-                                <div>
-                                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 0.2rem;">Original</span>
-                                    <p style="font-size: 0.9rem; color: var(--text-secondary); text-decoration: line-through;">{{ item.original }}</p>
-                                </div>
-                                
-                                <!-- Improved -->
-                                <div style="background: rgba(99, 102, 241, 0.03); border-left: 3px solid var(--primary); padding: 0.8rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;">
-                                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--primary); font-weight: 700; display: block; margin-bottom: 0.2rem;">Improved with metrics</span>
-                                    <p style="font-size: 0.95rem; color: #FFFFFF; font-weight: 500;">{{ item.improved }}</p>
-                                </div>
-                                
-                                <!-- Reason -->
-                                <p style="font-size: 0.8rem; color: var(--secondary); font-style: italic; display: flex; align-items: center; gap: 0.3rem; margin-top: 0.2rem;">
-                                    <i data-lucide="info" style="width: 14px; height: 14px;"></i> {{ item.reason }}
-                                </p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
-                        <p>To use these points, copy-paste them directly into your CV document, or edit your next version upload.</p>
-                    </div>
-                </div>
-            {% else %}
-                <!-- Awaiting Actions -->
-                <div class="card" style="padding: 4rem 2rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; border-style: dashed;">
-                    <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--text-muted);">
-                        <i data-lucide="play-circle"></i>
-                    </div>
-                    <div>
-                        <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Awaiting Suggestions</h3>
-                        <p style="color: var(--text-secondary); max-width: 320px; margin: 0 auto; font-size: 0.9rem;">Click 'Improve Selected Bullets' on the left to generate action-oriented variations.</p>
-                    </div>
-                </div>
+            </div>
             {% endif %}
+
+            <div class="form-group">
+                <label for="raw_bullets">Custom Bullet Points (one per line):</label>
+                <textarea name="raw_bullets" id="raw_bullets" rows="5" class="form-input"
+                    placeholder="e.g., Developed backend app.&#10;Helped fix database problems."></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+                <i data-lucide="sparkles"></i> Improve Selected Bullets
+            </button>
+        </form>
+    </div>
+
+    <!-- Right Panel: AI Results -->
+    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+        {% if rewritten_bullets %}
+        <div class="card card-padded" style="padding: 1.8rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <i data-lucide="check-check" style="width: 18px; height: 18px; color: var(--success);"></i>
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary);">AI Rewrite Results</h3>
+                <span class="badge badge-green" style="margin-left: auto;">{{ rewritten_bullets|length }} bullets</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for item in rewritten_bullets %}
+                <div style="padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);">
+                    <!-- Original -->
+                    <div style="margin-bottom: 0.8rem;">
+                        <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 0.3rem;">Original</span>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); text-decoration: line-through; line-height: 1.5;">{{ item.original }}</p>
+                    </div>
+
+                    <!-- Improved -->
+                    <div style="background: var(--primary-light); border-left: 3px solid var(--primary); padding: 0.8rem 1rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 0.6rem;">
+                        <span style="font-size: 0.7rem; text-transform: uppercase; color: var(--primary); font-weight: 700; display: block; margin-bottom: 0.3rem;">AI Improved</span>
+                        <p style="font-size: 0.88rem; color: var(--text-primary); font-weight: 500; line-height: 1.5;">{{ item.improved }}</p>
+                    </div>
+
+                    <!-- Reason -->
+                    <p style="font-size: 0.78rem; color: var(--secondary); font-style: italic; display: flex; align-items: flex-start; gap: 0.3rem; line-height: 1.5;">
+                        <i data-lucide="info" style="width: 13px; height: 13px; flex-shrink: 0; margin-top: 0.15rem;"></i>
+                        {{ item.reason }}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 1rem; text-align: center;">
+                Copy-paste these improved points directly into your CV document.
+            </p>
         </div>
 
+        {% else %}
+        <div class="empty-state" style="padding: 3rem 2rem;">
+            <div class="empty-icon" style="background: rgba(184,144,71,0.1); color: var(--secondary);">
+                <i data-lucide="wand-2"></i>
+            </div>
+            <h3>Awaiting Suggestions</h3>
+            <p>Select or enter bullet points on the left and click "Improve Selected Bullets" to get AI-powered rewrites.</p>
+        </div>
+        {% endif %}
     </div>
+
 </div>
 {% endblock %}

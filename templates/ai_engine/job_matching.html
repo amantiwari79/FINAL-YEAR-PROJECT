@@ -1,120 +1,135 @@
-{% extends 'base.html' %}
+{% extends 'base_dashboard.html' %}
 
 {% block title %}Job Matching - Resume Analysis AI+{% endblock %}
+{% block nav_job_matching %}active{% endblock %}
 
 {% block content %}
-<div class="dashboard-layout">
-    
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-        <div style="padding: 0 1rem; margin-bottom: 1rem;">
-            <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.1em;">Workspace</p>
-        </div>
-        
-        <ul class="sidebar-menu">
-            <li>
-                <a href="{% url 'dashboard' %}" class="sidebar-link">
-                    <i data-lucide="file-text"></i>
-                    My Resumes
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'job_matching' %}" class="sidebar-link active">
-                    <i data-lucide="target"></i>
-                    Job Matching
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'career_coach' %}" class="sidebar-link">
-                    <i data-lucide="message-square"></i>
-                    AI Career Coach
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'profile_edit' %}" class="sidebar-link">
-                    <i data-lucide="user"></i>
-                    Profile Settings
-                </a>
-            </li>
-            {% if request.user.is_staff %}
-            <li>
-                <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
-                    <i data-lucide="settings"></i>
-                    Admin Panel
-                </a>
-            </li>
-            {% endif %}
-        </ul>
-        
-        <!-- Sidebar Footer Avatar -->
-        <div style="margin-top: auto; padding: 1rem; border-top: 1px solid var(--glass-border); display: flex; align-items: center; gap: 0.8rem;">
-            {% if user.profile_image %}
-                <img src="{{ user.profile_image.url }}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--primary);">
-            {% else %}
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #FFFFFF;">
-                    {{ user.first_name|slice:":1" }}{% if not user.first_name %}U{% endif %}
-                </div>
-            {% endif %}
-            <div>
-                <p style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">{{ user.first_name }} {{ user.last_name }}</p>
-                <p style="font-size: 0.75rem; color: var(--text-secondary);">{{ user.email }}</p>
-            </div>
-        </div>
-    </aside>
-
-    <!-- Main Workspace -->
-    <div class="dashboard-content">
-        
-        <div class="dashboard-header">
-            <div class="welcome-msg">
-                <h1>Job Matching</h1>
-                <p>Select one of your uploaded CVs and paste a target job listing to analyze compatibility.</p>
-            </div>
-        </div>
-
-        <div style="max-width: 650px;">
-            <div class="card" style="padding: 2.5rem;">
-                
-                {% if not resumes %}
-                    <div style="text-align: center; padding: 2rem 0;">
-                        <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(10, 92, 54, 0.05); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--primary); margin: 0 auto 1.5rem;">
-                            <i data-lucide="file-x"></i>
-                        </div>
-                        <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">No Resumes Uploaded</h3>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">
-                            You need to upload at least one resume before you can evaluate matching job compatibility.
-                        </p>
-                        <a href="{% url 'upload_resume' %}" class="btn btn-primary">
-                            Upload Your First Resume <i data-lucide="upload"></i>
-                        </a>
-                    </div>
-                {% else %}
-                    <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
-                        {% csrf_token %}
-                        
-                        <div class="form-group">
-                            <label for="resume_id" style="font-weight: 600; color: var(--text-primary);">Select Resume Version</label>
-                            <select name="resume_id" id="resume_id" class="form-input" style="width: 100%; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23605C59%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto; padding-right: 2.5rem;" required>
-                                {% for resume in resumes %}
-                                    <option value="{{ resume.pk }}">{{ resume.title }} (v{{ resume.current_version }})</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="job_description" style="font-weight: 600; color: var(--text-primary);">Target Job Description</label>
-                            <textarea name="job_description" id="job_description" rows="8" class="form-input" placeholder="Paste the job description or role requirements here..." style="resize: vertical; min-height: 150px;" required></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%; margin-top: 0.5rem;">
-                            Analyze Compatibility <i data-lucide="zap"></i>
-                        </button>
-                    </form>
-                {% endif %}
-
-            </div>
-        </div>
-
+<div class="page-header">
+    <div>
+        <h1>Job Matching</h1>
+        <p>Select a resume and paste a job listing to analyze your compatibility score.</p>
     </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+
+    <!-- Left: Form Card -->
+    <div class="card card-padded" style="padding: 2rem;">
+        <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1.5rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--border);">
+            <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                <i data-lucide="target" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1rem; font-weight: 700; color: var(--text-primary);">Match Configuration</h2>
+                <p style="font-size: 0.78rem; color: var(--text-muted);">Select resume & paste job listing</p>
+            </div>
+        </div>
+
+        {% if not resumes %}
+        <div style="text-align: center; padding: 2rem 0;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary); margin: 0 auto 1.2rem;">
+                <i data-lucide="file-x" style="width: 26px; height: 26px;"></i>
+            </div>
+            <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text-primary);">No Resumes Found</h3>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.5;">
+                Upload at least one resume to start evaluating job compatibility.
+            </p>
+            <a href="{% url 'upload_resume' %}" class="btn-primary">
+                <i data-lucide="upload"></i> Upload Your First Resume
+            </a>
+        </div>
+
+        {% else %}
+        <form method="POST" style="display: flex; flex-direction: column; gap: 1.2rem;">
+            {% csrf_token %}
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="resume_id">Select Resume</label>
+                <select name="resume_id" id="resume_id" class="form-input" required style="cursor: pointer;">
+                    {% for resume in resumes %}
+                        <option value="{{ resume.pk }}">{{ resume.title }} (v{{ resume.current_version }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="job_description">Target Job Description</label>
+                <textarea name="job_description" id="job_description" rows="10" class="form-input"
+                    placeholder="Paste the job description or role requirements here..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary" style="justify-content: center; width: 100%;">
+                <i data-lucide="zap"></i> Analyze Compatibility
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Right: Info/Tip Panel -->
+    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+        <div class="card card-padded" style="padding: 1.8rem;">
+            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="info" style="width: 16px; height: 16px; color: var(--blue);"></i>
+                How Job Matching Works
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">1</div>
+                    <div>
+                        <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Select Resume</p>
+                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">Choose which resume version to match against the job</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">2</div>
+                    <div>
+                        <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Paste Job Description</p>
+                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">Copy the full job posting including requirements</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">3</div>
+                    <div>
+                        <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Analyze Compatibility</p>
+                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">AI compares skills, keywords and experience</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">4</div>
+                    <div>
+                        <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Review Score</p>
+                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">Get a detailed breakdown of match percentage</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-padded" style="padding: 1.5rem; border-left: 3px solid var(--primary);">
+            <p style="font-size: 0.82rem; font-weight: 700; color: var(--primary); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i data-lucide="lightbulb" style="width: 14px; height: 14px;"></i> Pro Tip
+            </p>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;">
+                Include the complete job description with all requirements, responsibilities, and qualifications for the most accurate compatibility analysis.
+            </p>
+        </div>
+
+        {% if resumes %}
+        <div class="card card-padded" style="padding: 1.5rem;">
+            <p style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.8rem;">Your Resumes</p>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                {% for resume in resumes %}
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                        <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                        <span style="font-size: 0.82rem; font-weight: 500; color: var(--text-primary);">{{ resume.title }}</span>
+                    </div>
+                    <span class="badge badge-green">v{{ resume.current_version }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
 </div>
 {% endblock %}
