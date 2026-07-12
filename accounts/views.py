@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, UserProfileForm
 
 def landing(request):
     """
@@ -128,3 +128,23 @@ def features_view(request):
     Renders the Features page.
     """
     return render(request, 'features.html')
+
+@login_required
+def profile_edit(request):
+    """
+    Renders user profile settings and processes name changes and image uploads.
+    """
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been successfully updated!')
+            return redirect('profile_edit')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
+    else:
+        form = UserProfileForm(instance=request.user)
+        
+    return render(request, 'accounts/profile_edit.html', {'form': form})

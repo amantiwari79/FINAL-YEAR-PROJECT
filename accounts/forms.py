@@ -35,3 +35,12 @@ class CustomUserCreationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class UserProfileForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=150, required=True, label=_('First Name'))
+    last_name = forms.CharField(max_length=150, required=True, label=_('Last Name'))
+    profile_image = forms.ImageField(required=False, label=_('Profile Image'))
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'profile_image')

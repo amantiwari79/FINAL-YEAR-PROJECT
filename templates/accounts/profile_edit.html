@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile Settings - Resume Analysis AI+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div style="padding: 0 1rem; margin-bottom: 1rem;">
+            <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.1em;">Settings</p>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{% url 'dashboard' %}" class="sidebar-link">
+                    <i data-lucide="file-text"></i>
+                    My Resumes
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'career_coach' %}" class="sidebar-link">
+                    <i data-lucide="message-square"></i>
+                    AI Career Coach
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'profile_edit' %}" class="sidebar-link active">
+                    <i data-lucide="user"></i>
+                    Profile Settings
+                </a>
+            </li>
+            {% if request.user.is_staff %}
+            <li>
+                <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
+                    <i data-lucide="settings"></i>
+                    Admin Panel
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        
+        <!-- Sidebar Footer Avatar -->
+        <div style="margin-top: auto; padding: 1rem; border-top: 1px solid var(--glass-border); display: flex; align-items: center; gap: 0.8rem;">
+            {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--primary);">
+            {% else %}
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #FFFFFF;">
+                    {{ user.first_name|slice:":1" }}{% if not user.first_name %}U{% endif %}
+                </div>
+            {% endif %}
+            <div>
+                <p style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">{{ user.first_name }} {{ user.last_name }}</p>
+                <p style="font-size: 0.75rem; color: var(--text-secondary);">Candidate</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="dashboard-content">
+        
+        <div class="dashboard-header">
+            <div class="welcome-msg">
+                <h1>Profile Settings</h1>
+                <p>Customize your personal details, edit your name, and upload a profile picture.</p>
+            </div>
+        </div>
+
+        <div style="max-width: 650px;">
+            <div class="card" style="padding: 2.5rem;">
+                
+                <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1.8rem;">
+                    {% csrf_token %}
+                    
+                    <!-- Avatar Upload Container -->
+                    <div style="display: flex; align-items: center; gap: 2rem;">
+                        <div style="position: relative;">
+                            {% if user.profile_image %}
+                                <img id="avatar-preview" src="{{ user.profile_image.url }}" alt="Avatar" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--primary); box-shadow: 0 4px 12px rgba(10, 92, 54, 0.15);">
+                            {% else %}
+                                <div id="avatar-preview-fallback" style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; color: #FFFFFF; box-shadow: 0 4px 12px rgba(10, 92, 54, 0.15);">
+                                    {{ user.first_name|slice:":1" }}{% if not user.first_name %}U{% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label for="profile_image" class="btn btn-secondary" style="padding: 0.5rem 1.2rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; background: none;">
+                                <i data-lucide="upload-cloud" style="width: 14px; height: 14px;"></i> Choose Photo
+                            </label>
+                            <input type="file" name="profile_image" id="profile_image" style="display: none;" accept="image/*" onchange="previewImage(this)">
+                            <p style="font-size: 0.75rem; color: var(--text-muted);">PNG, JPG or GIF. Max 2MB.</p>
+                            <p id="file-name" style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;"></p>
+                        </div>
+                    </div>
+
+                    <!-- Input Fields -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="first_name">First Name</label>
+                            <input type="text" name="first_name" id="first_name" class="form-input" value="{{ user.first_name }}" required placeholder="First name">
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Last Name</label>
+                            <input type="text" name="last_name" id="last_name" class="form-input" value="{{ user.last_name }}" required placeholder="Last name">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" class="form-input" value="{{ user.email }}" disabled style="cursor: not-allowed; background: rgba(0,0,0,0.02); color: var(--text-secondary); border-color: var(--glass-border);">
+                        <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;"><i data-lucide="lock" style="width: 10px; height: 10px; display: inline; vertical-align: middle;"></i> Email address is used for authentication and cannot be changed.</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; justify-content: center;">
+                        Save Profile Changes <i data-lucide="check-circle"></i>
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewImage(input) {
+        const file = input.files[0];
+        if (file) {
+            // Display filename
+            document.getElementById('file-name').innerText = `Selected: ${file.name}`;
+            
+            // Render local preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // If there's an image tag
+                const img = document.getElementById('avatar-preview');
+                if (img) {
+                    img.src = e.target.result;
+                } else {
+                    // Replace fallback div with image
+                    const fallback = document.getElementById('avatar-preview-fallback');
+                    if (fallback) {
+                        const newImg = document.createElement('img');
+                        newImg.id = 'avatar-preview';
+                        newImg.src = e.target.result;
+                        newImg.alt = 'Avatar';
+                        newImg.style.width = '100px';
+                        newImg.style.height = '100px';
+                        newImg.style.borderRadius = '50%';
+                        newImg.style.objectFit = 'cover';
+                        newImg.style.border = '2.5px solid var(--primary)';
+                        newImg.style.boxShadow = '0 4px 12px rgba(10, 92, 54, 0.15)';
+                        fallback.parentNode.replaceChild(newImg, fallback);
+                    }
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+{% endblock %}

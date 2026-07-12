@@ -30,12 +30,22 @@
                     AI Career Coach
                 </a>
             </li>
+            <li>
+                <a href="{% url 'profile_edit' %}" class="sidebar-link">
+                    <i data-lucide="user"></i>
+                    Profile Settings
+                </a>
+            </li>
         </ul>
         
         <div style="margin-top: auto; padding: 1rem; border-top: 1px solid var(--glass-border); display: flex; align-items: center; gap: 0.8rem;">
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #FFFFFF;">
-                {{ user.first_name|slice:":1" }}{% if not user.first_name %}A{% endif %}
-            </div>
+            {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--primary);">
+            {% else %}
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #FFFFFF;">
+                    {{ user.first_name|slice:":1" }}{% if not user.first_name %}A{% endif %}
+                </div>
+            {% endif %}
             <div>
                 <p style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">{{ user.first_name }} (Admin)</p>
                 <p style="font-size: 0.75rem; color: var(--text-secondary);">System Staff</p>
