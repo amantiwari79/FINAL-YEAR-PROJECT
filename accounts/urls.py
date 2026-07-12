@@ -13,6 +13,7 @@ urlpatterns = [
     path('admin-panel/', admin_views.admin_dashboard, name='admin_dashboard'),
     path('admin-panel/toggle-active/<int:user_id>/', admin_views.toggle_user_active, name='toggle_user_active'),
     path('admin-panel/toggle-staff/<int:user_id>/', admin_views.toggle_user_staff, name='toggle_user_staff'),
+    path('admin-panel/update-api/', admin_views.update_api_config, name='update_api_config'),
     
     # Static Info and Support Routes
     path('privacy/', views.privacy_policy, name='privacy_policy'),

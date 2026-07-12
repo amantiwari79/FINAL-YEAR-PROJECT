@@ -94,7 +94,7 @@
                         <span style="color: var(--text-secondary);">API Key:</span>
                         <span style="font-family: monospace; font-size: 0.75rem;">{{ masked_key }}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; padding-bottom: 0.2rem;">
+                    <div style="display: flex; justify-content: space-between; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); margin-bottom: 0.5rem;">
                         <span style="color: var(--text-secondary);">Integration:</span>
                         {% if api_configured %}
                             <span style="background: rgba(10, 92, 54, 0.08); color: #065F46; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 700;">ONLINE</span>
@@ -102,6 +102,16 @@
                             <span style="background: rgba(176, 42, 55, 0.08); color: #842029; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 700;">MOCKED</span>
                         {% endif %}
                     </div>
+
+                    <!-- Update API Key Form -->
+                    <form action="{% url 'update_api_config' %}" method="POST" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        {% csrf_token %}
+                        <label for="api_key" style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Update Gemini API Key</label>
+                        <input type="password" name="api_key" id="api_key" class="form-input" style="padding: 0.5rem 0.8rem; font-size: 0.8rem;" placeholder="Enter new API key..." required>
+                        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: var(--radius-sm); justify-content: center; width: 100%;">
+                            Save & Reload <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
 

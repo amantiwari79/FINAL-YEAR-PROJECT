@@ -85,3 +85,44 @@ def toggle_user_staff(request, user_id):
             status_text = "promoted to Staff" if user_to_toggle.is_staff else "demoted to Candidate"
             messages.success(request, f"User {user_to_toggle.email} has been {status_text}.")
     return redirect('admin_dashboard')
+
+import os
+
+@user_passes_test(is_admin, login_url='login')
+def update_api_config(request):
+    """
+    Updates the GEMINI_API_KEY inside the local .env configuration file.
+    """
+    if request.method == 'POST':
+        new_key = request.POST.get('api_key', '').strip()
+        if new_key:
+            env_path = os.path.join(settings.BASE_DIR, '.env')
+            lines = []
+            updated = False
+            
+            # Read existing .env lines
+            if os.path.exists(env_path):
+                with open(env_path, 'r') as f:
+                    lines = f.readlines()
+            
+            # Check for GEMINI_API_KEY entry
+            for i, line in enumerate(lines):
+                if line.strip().startswith("GEMINI_API_KEY="):
+                    lines[i] = f"GEMINI_API_KEY={new_key}\n"
+                    updated = True
+                    break
+            
+            if not updated:
+                if lines and not lines[-1].endswith('\n'):
+                    lines.append('\n')
+                lines.append(f"GEMINI_API_KEY={new_key}\n")
+            
+            # Write back updated configs
+            with open(env_path, 'w') as f:
+                f.writelines(lines)
+                
+            messages.success(request, "Gemini API Key successfully updated! The server is reloading with the new configuration.")
+        else:
+            messages.error(request, "API Key cannot be empty.")
+            
+    return redirect('admin_dashboard')
