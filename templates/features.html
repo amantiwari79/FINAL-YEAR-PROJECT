@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Features - Resume Analysis AI+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 4rem; padding-bottom: 4rem;">
+    
+    <!-- Hero Header -->
+    <div style="text-align: center; margin-bottom: 4rem; display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+        <span class="badge">System Capabilities</span>
+        <h1 style="font-size: 3rem; line-height: 1.2;">Everything You Need to <span style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Succeed</span></h1>
+        <p style="color: var(--text-secondary); max-width: 600px; font-size: 1.1rem; line-height: 1.6;">
+            A complete suite of AI tools designed to optimize your job application materials and mock-test your skills.
+        </p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="feature-grid" style="margin-bottom: 4rem;">
+        
+        <!-- Feature 1 -->
+        <div class="card feature-card">
+            <div class="feature-icon" style="background: rgba(10, 92, 54, 0.08); color: var(--primary); width: 50px; height: 50px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; border: 1px solid rgba(10, 92, 54, 0.15);">
+                <i data-lucide="file-text"></i>
+            </div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.8rem; font-family: var(--font-heading); color: var(--text-primary);">Smart Resume Storage</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                Upload PDF and DOCX documents, preview them natively inside your browser, and track your work histories across structured version logs.
+            </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="card feature-card">
+            <div class="feature-icon" style="background: rgba(10, 92, 54, 0.08); color: var(--primary); width: 50px; height: 50px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; border: 1px solid rgba(10, 92, 54, 0.15);">
+                <i data-lucide="target"></i>
+            </div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.8rem; font-family: var(--font-heading); color: var(--text-primary);">ATS Score Scanning</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                Compare your current resume against job requirements to calculate ATS score compatibilities and identify missing industry-specific keywords.
+            </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="card feature-card">
+            <div class="feature-icon" style="background: rgba(10, 92, 54, 0.08); color: var(--primary); width: 50px; height: 50px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; border: 1px solid rgba(10, 92, 54, 0.15);">
+                <i data-lucide="wand2"></i>
+            </div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.8rem; font-family: var(--font-heading); color: var(--text-primary);">AI Resume Rewriting</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                Upgrade weak summaries or draft high-impact experience bullets. Our AI models rewrite items to emphasize action-oriented phrases and metrics.
+            </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="card feature-card">
+            <div class="feature-icon" style="background: rgba(10, 92, 54, 0.08); color: var(--primary); width: 50px; height: 50px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; border: 1px solid rgba(10, 92, 54, 0.15);">
+                <i data-lucide="mail"></i>
+            </div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.8rem; font-family: var(--font-heading); color: var(--text-primary);">Cover Letter Generator</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                Instantly draft highly persuasive, customized cover letters targeted to a company profile and matching your extracted background skills.
+            </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="card feature-card">
+            <div class="feature-icon" style="background: rgba(10, 92, 54, 0.08); color: var(--primary); width: 50px; height: 50px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; border: 1px solid rgba(10, 92, 54, 0.15);">
+                <i data-lucide="message-square"></i>
+            </div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.8rem; font-family: var(--font-heading); color: var(--text-primary);">AI Career Advisor</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                Access a real-time conversational coach configured with RAG context to advise you on salary negotiations, scaling interviews, and role paths.
+            </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="card feature-card">
+            <div class="feature-icon" style="background: rgba(10, 92, 54, 0.08); color: var(--primary); width: 50px; height: 50px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; border: 1px solid rgba(10, 92, 54, 0.15);">
+                <i data-lucide="help-circle"></i>
+            </div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.8rem; font-family: var(--font-heading); color: var(--text-primary);">Mock Interview Prep</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                Generate customized interview prep questions (Technical, Behavioral, Situational) and tips based on your resume and targeted jobs.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Call to action -->
+    <div style="text-align: center;">
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard <i data-lucide="arrow-right"></i></a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn btn-primary">Get Started Free <i data-lucide="sparkles"></i></a>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

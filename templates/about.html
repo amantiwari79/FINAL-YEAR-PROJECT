@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us - Resume Analysis AI+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 4rem; padding-bottom: 4rem; max-width: 900px;">
+    
+    <!-- Hero Header -->
+    <div style="text-align: center; margin-bottom: 3.5rem; display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+        <span class="badge">Our Mission</span>
+        <h1 style="font-size: 3rem; line-height: 1.2;">Empowering Careers Through <span style="background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Advanced AI</span></h1>
+        <p style="color: var(--text-secondary); max-width: 600px; font-size: 1.1rem; line-height: 1.6;">
+            We bridge the gap between candidates and recruiters by making applicant tracking systems (ATS) transparent and accessible.
+        </p>
+    </div>
+
+    <!-- Details Card -->
+    <div class="card" style="padding: 3rem; display: flex; flex-direction: column; gap: 2.5rem; margin-bottom: 2.5rem;">
+        
+        <div>
+            <h2 style="font-size: 1.6rem; color: var(--text-primary); margin-bottom: 1rem; font-family: var(--font-heading);">Who We Are</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7;">
+                <strong>Resume Analysis AI+</strong> is a modern, state-of-the-art career assistance workspace designed to give candidates a professional advantage. By leveraging the latest breakthroughs in large language models, we analyze applicant resumes against specific target job listings to identify optimization gaps, format inconsistencies, and keyword deficits.
+            </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); padding: 2.5rem 0;">
+            <div>
+                <h3 style="font-size: 1.15rem; color: var(--primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="eye" style="width: 18px; height: 18px;"></i> Complete Transparency
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
+                    Learn exactly how recruiters evaluate your CV. Scan structural compliance metrics, find missing action verbs, and fix format errors immediately.
+                </p>
+            </div>
+            <div>
+                <h3 style="font-size: 1.15rem; color: var(--secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="zap" style="width: 18px; height: 18px;"></i> Instant Iteration
+                </h3>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6;">
+                    Iterate versions smoothly in-workspace. Upload new files, view version logs, and see your ATS compliance score increase in real-time.
+                </p>
+            </div>
+        </div>
+
+        <div>
+            <h2 style="font-size: 1.6rem; color: var(--text-primary); margin-bottom: 1rem; font-family: var(--font-heading);">Powered by Gemini</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7;">
+                Our AI engines utilize Google’s sophisticated <strong>gemini-2.5-flash</strong> model. This allows for deep semantic analysis of work experience fields, high-speed parsing of complex resume PDFs, structured JSON output matching, and context-aware chat advisor workflows.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- Call to action -->
+    <div style="text-align: center;">
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard <i data-lucide="arrow-right"></i></a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn btn-primary">Start Analyzing Free <i data-lucide="sparkles"></i></a>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

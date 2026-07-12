@@ -116,3 +116,15 @@ def contact_support(request):
             messages.error(request, 'Please fill in all required fields.')
             
     return render(request, 'accounts/contact_support.html')
+
+def about_view(request):
+    """
+    Renders the About page.
+    """
+    return render(request, 'about.html')
+
+def features_view(request):
+    """
+    Renders the Features page.
+    """
+    return render(request, 'features.html')

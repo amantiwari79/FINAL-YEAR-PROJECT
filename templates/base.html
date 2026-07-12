@@ -28,6 +28,8 @@
             <nav>
                 <ul class="nav-links">
                     <li><a href="{% url 'landing' %}" class="nav-link {% if request.resolver_match.url_name == 'landing' %}active{% endif %}">Home</a></li>
+                    <li><a href="{% url 'features' %}" class="nav-link {% if request.resolver_match.url_name == 'features' %}active{% endif %}">Features</a></li>
+                    <li><a href="{% url 'about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a></li>
                         <li>
