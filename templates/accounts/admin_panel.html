@@ -549,20 +549,21 @@
                         </span>
                     </div>
 
-                    <div class="api-key-form">
-                        <label for="api_key">Update API Key</label>
-                        <input type="password" placeholder="Enter new Gemini API key..." name="_update_key_inline" id="api_key_inline" autocomplete="off">
-                    </div>
-
                     <button type="submit" class="btn-apply">
                         <i data-lucide="check-circle" style="width:15px;height:15px;"></i> Apply System Changes
                     </button>
                 </form>
 
-                <!-- Separate API key update via existing endpoint -->
-                <form action="{% url 'update_api_config' %}" method="POST" style="display:none;" id="apiKeyForm">
+                <!-- Standalone API Key Update Form -->
+                <form action="{% url 'update_api_config' %}" method="POST" style="margin-top:0.5rem;">
                     {% csrf_token %}
-                    <input type="hidden" name="api_key" id="apiKeyHidden">
+                    <div class="api-key-form">
+                        <label for="api_key_direct">Update Gemini API Key</label>
+                        <input type="password" name="api_key" id="api_key_direct" placeholder="Enter new Gemini API key..." autocomplete="off" required>
+                        <button type="submit">
+                            Save & Apply Key
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -700,16 +701,6 @@
 
 <script>
     lucide.createIcons();
-
-    // Wire inline API key update form on "Apply System Changes"
-    document.querySelector('.btn-apply').closest('form').addEventListener('submit', function(e) {
-        const inlineKey = document.getElementById('api_key_inline').value.trim();
-        if (inlineKey) {
-            e.preventDefault();
-            document.getElementById('apiKeyHidden').value = inlineKey;
-            document.getElementById('apiKeyForm').submit();
-        }
-    });
 </script>
 </body>
 </html>
