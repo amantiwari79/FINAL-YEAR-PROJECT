@@ -327,7 +327,7 @@ def career_coach_chat(chat_history, user_message):
             model='gemini-2.5-flash',
             contents=contents,
             config=types.GenerateContentConfig(
-                system_instruction="You are ResuMate AI Career Coach, a highly helpful, empathetic, and knowledgeable career advisor. Give actionable advice on resume writing, job search, interview prep, and career growth.",
+                system_instruction="You are Resume Analysis AI+ Career Advisor, a highly helpful, empathetic, and knowledgeable career advisor. Give actionable advice on resume writing, job search, interview prep, and career growth.",
                 temperature=0.7
             )
         )
