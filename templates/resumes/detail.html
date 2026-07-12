@@ -112,8 +112,8 @@
             
             <div style="flex: 1; border-radius: var(--radius-md); overflow: hidden; background: #FFFFFF; border: 1px solid var(--glass-border);">
                 {% if resume.file.name|lower|slice:"-4:" == ".pdf" %}
-                    <!-- Render PDF preview using browser embed -->
-                    <embed src="{{ resume.file.url }}" type="application/pdf" width="100%" height="100%" style="border: none;">
+                    <!-- Render PDF preview using browser iframe -->
+                    <iframe src="{{ resume.file.url }}" width="100%" height="100%" style="border: none;"></iframe>
                 {% else %}
                     <!-- For DOCX files, render extracted text -->
                     <div style="padding: 2rem; color: #333333; height: 100%; overflow-y: auto; font-family: var(--font-body); font-size: 0.9rem; line-height: 1.8; text-align: left; background: #FAF9F6;">
