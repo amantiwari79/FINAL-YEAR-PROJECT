@@ -115,38 +115,53 @@ import os
 @user_passes_test(is_admin, login_url='login')
 def update_api_config(request):
     """
-    Updates the GEMINI_API_KEY inside the local .env configuration file.
+    Updates the GEMINI_API_KEY inside the local .env file AND applies it
+    immediately to the running process via os.environ so no restart is needed.
     """
     if request.method == 'POST':
         new_key = request.POST.get('api_key', '').strip()
-        if new_key:
-            env_path = os.path.join(settings.BASE_DIR, '.env')
-            lines = []
-            updated = False
-            
-            # Read existing .env lines
-            if os.path.exists(env_path):
-                with open(env_path, 'r') as f:
-                    lines = f.readlines()
-            
-            # Check for GEMINI_API_KEY entry
-            for i, line in enumerate(lines):
-                if line.strip().startswith("GEMINI_API_KEY="):
-                    lines[i] = f"GEMINI_API_KEY={new_key}\n"
-                    updated = True
-                    break
-            
-            if not updated:
-                if lines and not lines[-1].endswith('\n'):
-                    lines.append('\n')
-                lines.append(f"GEMINI_API_KEY={new_key}\n")
-            
-            # Write back updated configs
-            with open(env_path, 'w') as f:
-                f.writelines(lines)
-                
-            messages.success(request, "Gemini API Key successfully updated! The server is reloading with the new configuration.")
-        else:
+        if not new_key:
             messages.error(request, "API Key cannot be empty.")
-            
+            return redirect('admin_dashboard')
+
+        env_path = os.path.join(settings.BASE_DIR, '.env')
+        lines = []
+        updated = False
+
+        # Read existing .env
+        if os.path.exists(env_path):
+            with open(env_path, 'r') as f:
+                lines = f.readlines()
+
+        # Replace or append GEMINI_API_KEY line
+        for i, line in enumerate(lines):
+            if line.strip().startswith("GEMINI_API_KEY="):
+                lines[i] = f"GEMINI_API_KEY={new_key}\n"
+                updated = True
+                break
+
+        if not updated:
+            if lines and not lines[-1].endswith('\n'):
+                lines.append('\n')
+            lines.append(f"GEMINI_API_KEY={new_key}\n")
+
+        # Write back to .env file
+        with open(env_path, 'w') as f:
+            f.writelines(lines)
+
+        # ✅ Apply to running process immediately (no server restart needed)
+        os.environ['GEMINI_API_KEY'] = new_key
+
+        # ✅ Reload the Gemini client in ai_engine.utils so new key is used right away
+        try:
+            import ai_engine.utils as ai_utils
+            ai_utils._gemini_client = None   # reset cached client
+        except Exception:
+            pass
+
+        messages.success(
+            request,
+            f"✅ Gemini API Key updated successfully! New key: {new_key[:8]}...{new_key[-4:]} is now active."
+        )
+
     return redirect('admin_dashboard')

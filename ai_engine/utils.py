@@ -1,4 +1,5 @@
 import re
+import os
 import json
 from django.conf import settings
 from decouple import config
@@ -8,9 +9,12 @@ from google.genai import types
 def get_gemini_client():
     """
     Initializes and returns the official Google GenAI Gemini client.
+    Reads GEMINI_API_KEY from os.environ directly so admin panel updates
+    take effect immediately without a server restart.
     Returns None if the key is not set or is a mock placeholder.
     """
-    api_key = config('GEMINI_API_KEY', default='mock-key')
+    # os.environ checked first (live updates), then fall back to decouple/.env
+    api_key = os.environ.get('GEMINI_API_KEY') or config('GEMINI_API_KEY', default='mock-key')
     if not api_key or 'mock' in api_key.lower() or api_key == 'your-gemini-api-key-here':
         return None
     try:
