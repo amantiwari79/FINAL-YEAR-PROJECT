@@ -2,12 +2,11 @@ import time
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from resumes.models import Resume, ResumeVersion
 from .models import ATSFeedback, AIActionLog
 from .utils import (
     calculate_ats_score,
-    rewrite_bullet_points,
-    generate_cover_letter,
     career_coach_chat,
     generate_interview_questions
 )
@@ -46,99 +45,24 @@ def ats_scan(request, resume_id):
             status='success'
         )
         messages.success(request, 'ATS scan completed successfully!')
-        
+
     # Get last scan if available
     latest_scan = resume.feedbacks.first()
-    
+    active_report = feedback_report or latest_scan
+
+    # Build score history (last 6 scans) for line chart
+    history_qs = resume.feedbacks.order_by('created_at')[:6]
+    score_history = [{'score': f.score, 'date': f.created_at.strftime('%b')} for f in history_qs]
+
     context = {
         'resume': resume,
-        'feedback_report': feedback_report or latest_scan,
+        'feedback_report': active_report,
+        'score_history': score_history,
     }
     return render(request, 'ai_engine/ats_scan.html', context)
 
-@login_required
-def bullet_improver(request, resume_id):
-    """
-    Extracts and rewrites experience bullet points using AI metrics.
-    """
-    resume = get_object_or_404(Resume, pk=resume_id, user=request.user)
-    
-    # Try to load bullets from parsed experience
-    experience_list = resume.parsed_data.get('experience', [])
-    bullets = []
-    for exp in experience_list:
-        bullets.extend(exp.get('bullet_points', []))
-        
-    # If no bullets parsed, provide standard default list for demo/editor
-    if not bullets:
-        bullets = [
-            "Responsible for building Django APIs.",
-            "Helped fix bugs and database queries.",
-            "Wrote unit tests for the frontend."
-        ]
-        
-    rewritten_bullets = None
-    if request.method == 'POST':
-        # User submitted bullets to improve
-        submitted_bullets = request.POST.getlist('bullets')
-        if not submitted_bullets:
-            # Fallback if text field is used
-            raw_bullets_text = request.POST.get('raw_bullets', '')
-            submitted_bullets = [b.strip() for b in raw_bullets_text.split('\n') if b.strip()]
-            
-        if submitted_bullets:
-            t0 = time.time()
-            rewritten_bullets = rewrite_bullet_points(submitted_bullets)
-            latency = round(time.time() - t0, 2)
-            AIActionLog.objects.create(
-                action='bullet_improver',
-                target_name=f"{resume.user.first_name} {resume.user.last_name} – {resume.title}",
-                tokens_used=sum(len(b.split()) for b in submitted_bullets),
-                latency_ms=latency,
-                status='success'
-            )
-            messages.success(request, 'AI rewrite suggestion generated!')
-            
-    context = {
-        'resume': resume,
-        'original_bullets': bullets,
-        'rewritten_bullets': rewritten_bullets
-    }
-    return render(request, 'ai_engine/bullet_improver.html', context)
 
-@login_required
-def cover_letter_view(request, resume_id):
-    """
-    Form to input job details and render a custom AI-generated cover letter.
-    """
-    resume = get_object_or_404(Resume, pk=resume_id, user=request.user)
-    cover_letter = None
-    
-    if request.method == 'POST':
-        job_title = request.POST.get('job_title', '').strip()
-        company_name = request.POST.get('company_name', '').strip()
-        job_description = request.POST.get('job_description', '').strip()
-        
-        if not job_title or not company_name:
-            messages.error(request, 'Job Title and Company Name are required.')
-        else:
-            t0 = time.time()
-            cover_letter = generate_cover_letter(resume.raw_text, job_title, company_name, job_description)
-            latency = round(time.time() - t0, 2)
-            AIActionLog.objects.create(
-                action='cover_letter',
-                target_name=f"{resume.user.first_name} {resume.user.last_name} – {job_title} @ {company_name}",
-                tokens_used=len(resume.raw_text.split()) + len(job_description.split()),
-                latency_ms=latency,
-                status='success'
-            )
-            messages.success(request, 'Cover letter generated successfully!')
-            
-    context = {
-        'resume': resume,
-        'cover_letter': cover_letter,
-    }
-    return render(request, 'ai_engine/cover_letter.html', context)
+
 
 @login_required
 def career_coach_view(request):
@@ -175,6 +99,11 @@ def career_coach_view(request):
                 latency_ms=latency,
                 status='success'
             )
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', ''):
+                return JsonResponse({
+                    'status': 'success',
+                    'response': assistant_response
+                })
             
     # Clear chat trigger
     if request.GET.get('clear') == '1':
@@ -221,28 +150,48 @@ def interview_prep_view(request, resume_id):
 def job_matching_view(request):
     """
     Renders general Job Matching dashboard where candidates select a resume and paste a job description.
+    Results are displayed inline on the same page.
     """
     resumes = Resume.objects.filter(user=request.user)
-    
+    match_result = None
+    selected_resume = None
+
     if request.method == 'POST':
         resume_id = request.POST.get('resume_id')
         job_description = request.POST.get('job_description', '').strip()
-        
+
         if not resume_id or not job_description:
             messages.error(request, 'Please select a resume and provide a job description.')
-            return redirect('job_matching')
-            
-        resume = get_object_or_404(Resume, pk=resume_id, user=request.user)
-        score, feedback_details = calculate_ats_score(resume.raw_text, job_description)
-        
-        # Save to database
-        ATSFeedback.objects.create(
-            resume=resume,
-            score=score,
-            job_description=job_description,
-            feedback=feedback_details
-        )
-        messages.success(request, f'Job matching scan for "{resume.title}" completed successfully!')
-        return redirect('ats_scan', resume_id=resume.pk)
-        
-    return render(request, 'ai_engine/job_matching.html', {'resumes': resumes})
+        else:
+            selected_resume = get_object_or_404(Resume, pk=resume_id, user=request.user)
+            t0 = time.time()
+            score, feedback_details = calculate_ats_score(selected_resume.raw_text, job_description)
+            latency = round(time.time() - t0, 2)
+
+            # Persist to DB
+            ATSFeedback.objects.create(
+                resume=selected_resume,
+                score=score,
+                job_description=job_description,
+                feedback=feedback_details
+            )
+            AIActionLog.objects.create(
+                action='job_matching',
+                target_name=f"{request.user.first_name} {request.user.last_name} – {selected_resume.title}",
+                tokens_used=len(selected_resume.raw_text.split()) + len(job_description.split()),
+                latency_ms=latency,
+                status='success'
+            )
+            match_result = {
+                'score': score,
+                'feedback': feedback_details,
+                'resume_title': selected_resume.title,
+                'job_description': job_description,
+            }
+
+    return render(request, 'ai_engine/job_matching.html', {
+        'resumes': resumes,
+        'match_result': match_result,
+        'selected_resume': selected_resume,
+    })
+

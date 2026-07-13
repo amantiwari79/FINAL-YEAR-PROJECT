@@ -3,6 +3,42 @@
 {% block title %}Job Matching - Resume Analysis AI+{% endblock %}
 {% block nav_job_matching %}active{% endblock %}
 
+{% block extra_css %}
+@keyframes pulse {
+    0% { transform: scale(0.9); opacity: 1; }
+    100% { transform: scale(1.4); opacity: 0; }
+}
+@keyframes scan-spin {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg); }
+}
+.loading-dot {
+    width: 8px; height: 8px;
+    background: var(--secondary);
+    border-radius: 50%;
+    display: inline-block;
+    animation: loading-bounce 1.4s infinite ease-in-out both;
+}
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes loading-bounce {
+    0%, 80%, 100% { transform: scale(0.3); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}
+@keyframes button-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.spin { display: inline-block; animation: button-spin 1s linear infinite; }
+
+.ai-progress-bar { width: 240px; height: 4px; background: var(--border); border-radius: 999px; overflow: hidden; margin: 0 auto; }
+.ai-progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 999px; animation: progressPulse 2s infinite; }
+@keyframes progressPulse { 0% { width: 0%; } 50% { width: 85%; } 100% { width: 100%; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.results-animate { animation: fadeInUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <div>
@@ -40,14 +76,14 @@
         </div>
 
         {% else %}
-        <form method="POST" style="display: flex; flex-direction: column; gap: 1.2rem;">
+        <form method="POST" style="display: flex; flex-direction: column; gap: 1.2rem;" id="job-matching-form">
             {% csrf_token %}
 
             <div class="form-group" style="margin-bottom: 0;">
                 <label for="resume_id">Select Resume</label>
                 <select name="resume_id" id="resume_id" class="form-input" required style="cursor: pointer;">
                     {% for resume in resumes %}
-                        <option value="{{ resume.pk }}">{{ resume.title }} (v{{ resume.current_version }})</option>
+                        <option value="{{ resume.pk }}" {% if selected_resume and selected_resume.pk == resume.pk %}selected{% endif %}>{{ resume.title }} (v{{ resume.current_version }})</option>
                     {% endfor %}
                 </select>
             </div>
@@ -55,81 +91,242 @@
             <div class="form-group" style="margin-bottom: 0;">
                 <label for="job_description">Target Job Description</label>
                 <textarea name="job_description" id="job_description" rows="10" class="form-input"
-                    placeholder="Paste the job description or role requirements here..." required></textarea>
+                    placeholder="Paste the job description or role requirements here..." required>{% if match_result %}{{ match_result.job_description }}{% endif %}</textarea>
             </div>
 
-            <button type="submit" class="btn-primary" style="justify-content: center; width: 100%;">
+            <button type="submit" class="btn-primary" style="justify-content: center; width: 100%;" id="submit-btn">
                 <i data-lucide="zap"></i> Analyze Compatibility
             </button>
         </form>
         {% endif %}
     </div>
 
-    <!-- Right: Info/Tip Panel -->
-    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
-        <div class="card card-padded" style="padding: 1.8rem;">
-            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="info" style="width: 16px; height: 16px; color: var(--blue);"></i>
-                How Job Matching Works
-            </h3>
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
-                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
-                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">1</div>
-                    <div>
-                        <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Select Resume</p>
-                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">Choose which resume version to match against the job</p>
-                    </div>
+    <!-- Right: Results Panel -->
+    <div style="display: flex; flex-direction: column; gap: 1.2rem; width: 100%;" id="results-panel">
+        <!-- Loading State (Initially Hidden) -->
+        <div class="card card-padded" id="loading-card" style="display: none; padding: 4rem 2rem; text-align: center; flex-direction: column; align-items: center; justify-content: center; gap: 1.8rem; min-height: 380px;">
+            <div style="position: relative; width: 84px; height: 84px; margin-bottom: 0.5rem;">
+                <div style="position: absolute; inset: 0; border-radius: 50%; background: var(--primary-light); animation: pulse 2s infinite ease-in-out;"></div>
+                <div style="position: absolute; inset: 12px; border-radius: 50%; background: var(--primary-light); animation: pulse 2s infinite ease-in-out; animation-delay: 0.5s;"></div>
+                <div style="position: absolute; inset: 22px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 4px 12px rgba(10,92,54,0.3);">
+                    <i data-lucide="target" style="width: 26px; height: 26px; animation: scan-spin 3s linear infinite;"></i>
                 </div>
-                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
-                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">2</div>
-                    <div>
-                        <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Paste Job Description</p>
-                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">Copy the full job posting including requirements</p>
-                    </div>
+            </div>
+            <div>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.6rem;">Analyzing Job Compatibility</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 340px; margin: 0 auto; line-height: 1.6;" id="loading-status-text">Extracting skills from selected resume...</p>
+            </div>
+            <div style="display: flex; gap: 0.4rem; justify-content: center; align-items: center;">
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+            </div>
+            <div class="ai-progress-bar"><div class="ai-progress-bar-fill"></div></div>
+        </div>
+
+        <div id="results-content" class="results-animate" style="display: flex; flex-direction: column; gap: 1.2rem; width: 100%;">
+
+        {% if match_result %}
+            <!-- Score Card -->
+            <div class="card card-padded" style="padding: 1.8rem; text-align: center;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">Match Report — {{ match_result.resume_title }}</h3>
+                    <span class="badge {% if match_result.score >= 80 %}badge-green{% elif match_result.score >= 60 %}badge-gold{% else %}badge-red{% endif %}">
+                        {% if match_result.score >= 80 %}Strong Match{% elif match_result.score >= 60 %}Moderate Match{% else %}Needs Work{% endif %}
+                    </span>
                 </div>
-                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
-                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">3</div>
-                    <div>
-                        <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Analyze Compatibility</p>
-                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">AI compares skills, keywords and experience</p>
+
+                <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 1.5rem;">
+                    <div style="position: relative; width: 120px; height: 120px;">
+                        <svg viewBox="0 0 36 36" style="width: 120px; height: 120px; transform: rotate(-90deg);">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--border)" stroke-width="2.5"/>
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
+                                stroke="{% if match_result.score >= 80 %}var(--success){% elif match_result.score >= 60 %}var(--warning){% else %}var(--danger){% endif %}"
+                                stroke-width="2.5"
+                                stroke-dasharray="{{ match_result.score }}, 100"
+                                style="transition: stroke-dasharray 1s ease;"/>
+                        </svg>
+                        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <span style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1;">{{ match_result.score }}</span>
+                            <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">/ 100</span>
+                        </div>
                     </div>
-                </div>
-                <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
-                    <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">4</div>
-                    <div>
-                        <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Review Score</p>
-                        <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">Get a detailed breakdown of match percentage</p>
+                    <div style="text-align: left; flex: 1;">
+                        <p style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 0.4rem;">Overall Assessment</p>
+                        <p style="font-size: 0.88rem; color: var(--text-primary); line-height: 1.6;" id="assessment-text">{{ match_result.feedback.overall_assessment }}</p>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card card-padded" style="padding: 1.5rem; border-left: 3px solid var(--primary);">
-            <p style="font-size: 0.82rem; font-weight: 700; color: var(--primary); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
-                <i data-lucide="lightbulb" style="width: 14px; height: 14px;"></i> Pro Tip
-            </p>
-            <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;">
-                Include the complete job description with all requirements, responsibilities, and qualifications for the most accurate compatibility analysis.
-            </p>
-        </div>
+            <!-- Keywords -->
+            <div class="card card-padded" style="padding: 1.5rem;">
+                <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1.2rem; color: var(--text-primary);">Keywords & Skills Analysis</h3>
 
-        {% if resumes %}
-        <div class="card card-padded" style="padding: 1.5rem;">
-            <p style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.8rem;">Your Resumes</p>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                {% for resume in resumes %}
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border);">
-                    <div style="display: flex; align-items: center; gap: 0.6rem;">
-                        <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i>
-                        <span style="font-size: 0.82rem; font-weight: 500; color: var(--text-primary);">{{ resume.title }}</span>
+                <div style="margin-bottom: 1.2rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem;">
+                        <i data-lucide="check-circle" style="width: 14px; height: 14px; color: var(--success);"></i>
+                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--success);">Matching Keywords</span>
                     </div>
-                    <span class="badge badge-green">v{{ resume.current_version }}</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        {% for skill in match_result.feedback.matching_skills %}
+                            <span style="background: var(--success-light); border: 1px solid rgba(22,163,74,0.2); padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; color: var(--success);">{{ skill }}</span>
+                        {% empty %}
+                            <span style="font-size: 0.82rem; color: var(--text-muted);">No matching keywords found yet.</span>
+                        {% endfor %}
+                    </div>
                 </div>
-                {% endfor %}
+
+                <div>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem;">
+                        <i data-lucide="alert-circle" style="width: 14px; height: 14px; color: var(--warning);"></i>
+                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--warning);">Missing Keywords</span>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        {% for keyword in match_result.feedback.missing_keywords %}
+                            <span style="background: var(--warning-light); border: 1px solid rgba(217,119,6,0.2); padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; color: var(--warning);">{{ keyword }}</span>
+                        {% empty %}
+                            <span style="font-size: 0.82rem; color: var(--success); font-weight: 500;">✓ All major keywords matched!</span>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- Suggestions -->
+            <div class="card card-padded" style="padding: 1.5rem;">
+                <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Actionable Suggestions</h3>
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem;">
+                    {% for suggestion in match_result.feedback.suggestions %}
+                        <li style="display: flex; gap: 0.7rem; align-items: flex-start; font-size: 0.85rem; color: var(--text-primary); line-height: 1.5;">
+                            <i data-lucide="check-square" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; margin-top: 0.1rem;"></i>
+                            <span class="md-content">{{ suggestion }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div style="margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.8rem;">
+                    <a href="{% url 'ats_scan' selected_resume.pk %}" class="btn-primary" style="font-size: 0.82rem; padding: 0.5rem 1rem;">
+                        <i data-lucide="scan-line" style="width: 14px; height: 14px;"></i> Run Full ATS Scan
+                    </a>
+                </div>
+            </div>
+
+        {% else %}
+            <!-- Info Panel (no results yet) -->
+            <div class="card card-padded" style="padding: 1.8rem;">
+                <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="info" style="width: 16px; height: 16px; color: var(--blue);"></i>
+                    How Job Matching Works
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    {% for step, desc in steps %}
+                    <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                        <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">{{ forloop.counter }}</div>
+                        <div>
+                            <p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">{{ step }}</p>
+                            <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">{{ desc }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                        <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">1</div>
+                        <div><p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Select Resume</p><p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">Choose which resume version to match against the job</p></div>
+                    </div>
+                    <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                        <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">2</div>
+                        <div><p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Paste Job Description</p><p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">Copy the full job posting including requirements</p></div>
+                    </div>
+                    <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                        <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">3</div>
+                        <div><p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Analyze Compatibility</p><p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">AI compares skills, keywords, and experience level</p></div>
+                    </div>
+                    <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+                        <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">4</div>
+                        <div><p style="font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">Review Score & Fix Gaps</p><p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.1rem;">Get a breakdown of match % with actionable suggestions</p></div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card card-padded" style="padding: 1.5rem; border-left: 3px solid var(--primary);">
+                <p style="font-size: 0.82rem; font-weight: 700; color: var(--primary); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <i data-lucide="lightbulb" style="width: 14px; height: 14px;"></i> Pro Tip
+                </p>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;">
+                    Include the complete job description with all requirements, responsibilities, and qualifications for the most accurate compatibility analysis.
+                </p>
+            </div>
+
+            {% if resumes %}
+            <div class="card card-padded" style="padding: 1.5rem;">
+                <p style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.8rem;">Your Resumes</p>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for resume in resumes %}
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.8rem; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                            <span style="font-size: 0.82rem; font-weight: 500; color: var(--text-primary);">{{ resume.title }}</span>
+                        </div>
+                        <span class="badge badge-green">v{{ resume.current_version }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         {% endif %}
+        </div>
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    marked.setOptions({ headerIds: false, mangle: false });
+    document.querySelectorAll('.md-content').forEach(el => {
+        if (el.textContent.trim()) el.innerHTML = marked.parse(el.textContent);
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const matchingForm = document.getElementById('job-matching-form');
+        const textarea = document.getElementById('job_description');
+        const select = document.getElementById('resume_id');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultsContent = document.getElementById('results-content');
+        const loadingCard = document.getElementById('loading-card');
+        const statusText = document.getElementById('loading-status-text');
+
+        if (matchingForm && textarea && submitBtn && resultsContent && loadingCard) {
+            const statusSteps = [
+                "Extracting skills from selected resume...",
+                "Reading target job description requirements...",
+                "Mapping resume qualifications against job details...",
+                "Identifying missing key technologies & experience...",
+                "Calculating match percentage & compatibility score...",
+                "Generating detailed compatibility insights..."
+            ];
+
+            let stepIndex = 0;
+
+            matchingForm.addEventListener('submit', function(e) {
+                if (!textarea.value.trim() || !select.value) {
+                    e.preventDefault();
+                    return;
+                }
+                resultsContent.style.display = 'none';
+                loadingCard.style.display = 'flex';
+                textarea.readOnly = true;
+                select.disabled = true;
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.7';
+                submitBtn.innerHTML = `<i data-lucide="loader" class="spin" style="width: 14px; height: 14px; margin-right: 6px;"></i> Analyzing...`;
+                if (window.lucide) window.lucide.createIcons();
+
+                setInterval(() => {
+                    stepIndex = (stepIndex + 1) % statusSteps.length;
+                    statusText.textContent = statusSteps[stepIndex];
+                }, 2000);
+            });
+        }
+    });
+</script>
 {% endblock %}

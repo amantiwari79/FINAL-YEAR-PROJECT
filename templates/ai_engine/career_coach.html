@@ -80,10 +80,79 @@
     border-radius: 0 var(--radius) var(--radius) var(--radius);
 }
 
+.msg-ai .msg-bubble ul, .msg-ai .msg-bubble ol {
+    margin-left: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+.msg-ai .msg-bubble li {
+    margin-bottom: 0.25rem;
+}
+.msg-ai .msg-bubble p {
+    margin-bottom: 0.5rem;
+}
+.msg-ai .msg-bubble p:last-child {
+    margin-bottom: 0;
+}
+.msg-ai .msg-bubble h1, .msg-ai .msg-bubble h2, .msg-ai .msg-bubble h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-top: 0.6rem;
+    margin-bottom: 0.4rem;
+}
+
 .msg-user .msg-bubble {
     background: var(--primary);
     color: #fff;
     border-radius: var(--radius) 0 var(--radius) var(--radius);
+}
+
+/* === Animations === */
+@keyframes msgSlideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.msg-ai, .msg-user {
+    animation: msgSlideIn 0.3s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* Typing indicator */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.6rem 0.9rem;
+}
+.typing-indicator span {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    display: inline-block;
+    animation: typingBounce 1.2s infinite ease-in-out;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40%           { transform: translateY(-6px); opacity: 1; }
+}
+
+/* Send button loading state */
+#send-btn.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+#send-btn .btn-spinner {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+#send-btn.loading .btn-spinner { display: inline-block; }
+#send-btn.loading .btn-icon    { display: none; }
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .chat-input-bar {
@@ -165,7 +234,7 @@
                 {% if message.role == 'assistant' %}
                 <div class="msg-ai">
                     <div class="msg-avatar ai-avatar"><i data-lucide="bot" style="width: 14px; height: 14px;"></i></div>
-                    <div class="msg-bubble">{{ message.content|linebreaksbr }}</div>
+                    <div class="msg-bubble ai-msg-content">{{ message.content }}</div>
                 </div>
                 {% else %}
                 <div class="msg-user">
@@ -177,13 +246,15 @@
         </div>
 
         <!-- Input Bar -->
-        <form method="POST" class="chat-input-bar">
+        <form id="chat-form" class="chat-input-bar">
             {% csrf_token %}
             <input type="text" name="message" id="message-input" required
                 placeholder="Ask about interview tips, salary, CV critiques..."
                 class="form-input" style="flex: 1;" autocomplete="off">
-            <button type="submit" class="btn-primary" style="padding: 0 1.4rem; height: 42px;">
-                <i data-lucide="send"></i> Send
+            <button type="submit" id="send-btn" class="btn-primary" style="padding: 0 1.4rem; height: 42px; display:flex; align-items:center; gap:0.4rem;">
+                <span class="btn-icon"><i data-lucide="send" style="width:16px;height:16px;"></i></span>
+                <span class="btn-spinner"></span>
+                Send
             </button>
         </form>
     </div>
@@ -192,15 +263,130 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-    const chatLog = document.getElementById('chat-log');
-    if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
+    // ── Configure marked ──────────────────────────────────────────────────
+    marked.setOptions({ headerIds: false, mangle: false });
 
-    // Enter key to submit
-    document.getElementById('message-input').addEventListener('keydown', function(e) {
+    // ── Render pre-loaded messages ────────────────────────────────────────
+    document.querySelectorAll('.ai-msg-content').forEach(el => {
+        el.innerHTML = marked.parse(el.textContent);
+    });
+
+    const chatLog   = document.getElementById('chat-log');
+    const form      = document.getElementById('chat-form');
+    const input     = document.getElementById('message-input');
+    const sendBtn   = document.getElementById('send-btn');
+
+    // ── Auto-scroll helper ────────────────────────────────────────────────
+    function scrollBottom() {
+        chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: 'smooth' });
+    }
+    scrollBottom();
+
+    // ── Build a user bubble ───────────────────────────────────────────────
+    function appendUserMsg(text) {
+        const firstLetter = '{{ user.first_name|slice:":1"|default:"U" }}';
+        const div = document.createElement('div');
+        div.className = 'msg-user';
+        div.innerHTML = `
+            <div class="msg-avatar user-avatar">${firstLetter}</div>
+            <div class="msg-bubble">${text.replace(/</g,'&lt;')}</div>`;
+        chatLog.appendChild(div);
+        scrollBottom();
+    }
+
+    // ── Build a typing indicator ──────────────────────────────────────────
+    function appendTyping() {
+        const div = document.createElement('div');
+        div.className = 'msg-ai';
+        div.id = 'typing-row';
+        div.innerHTML = `
+            <div class="msg-avatar ai-avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/>
+                    <path d="M2 14h2"/><path d="M22 14h-2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+                </svg>
+            </div>
+            <div class="msg-bubble" style="background:var(--surface);border:1px solid var(--border);">
+                <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>`;
+        chatLog.appendChild(div);
+        scrollBottom();
+        return div;
+    }
+
+    // ── Build an AI reply bubble ──────────────────────────────────────────
+    function appendAiMsg(markdown) {
+        const row = document.getElementById('typing-row');
+        if (row) row.remove();
+        const div = document.createElement('div');
+        div.className = 'msg-ai';
+        div.innerHTML = `
+            <div class="msg-avatar ai-avatar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/>
+                    <path d="M2 14h2"/><path d="M22 14h-2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+                </svg>
+            </div>
+            <div class="msg-bubble ai-msg-content"></div>`;
+        div.querySelector('.ai-msg-content').innerHTML = marked.parse(markdown);
+        chatLog.appendChild(div);
+        scrollBottom();
+    }
+
+    // ── AJAX send ─────────────────────────────────────────────────────────
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Clear input & lock UI
+        input.value = '';
+        sendBtn.classList.add('loading');
+        input.disabled = true;
+
+        // Hide the empty-state placeholder if visible
+        const placeholder = chatLog.querySelector('[style*="align-items: center"]');
+        if (placeholder) placeholder.remove();
+
+        // Append user message
+        appendUserMsg(message);
+
+        // Show typing indicator
+        appendTyping();
+
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const res = await fetch(window.location.pathname, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                },
+                body: new URLSearchParams({ message, csrfmiddlewaretoken: csrfToken })
+            });
+            const data = await res.json();
+            appendAiMsg(data.response || 'Sorry, something went wrong. Please try again.');
+        } catch (err) {
+            appendAiMsg('⚠️ Network error. Please check your connection and try again.');
+        } finally {
+            sendBtn.classList.remove('loading');
+            input.disabled = false;
+            input.focus();
+        }
+    });
+
+    // ── Enter key to submit ───────────────────────────────────────────────
+    input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            this.closest('form').submit();
+            form.dispatchEvent(new Event('submit'));
         }
     });
 </script>

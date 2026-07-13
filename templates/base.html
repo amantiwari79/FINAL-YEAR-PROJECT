@@ -13,6 +13,9 @@
     <!-- Lucide Icons for premium feel -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- Favicon Logo -->
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+    
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -20,8 +23,8 @@
     <!-- Header / Navigation -->
     <header>
         <div class="container nav-wrapper">
-            <a href="{% url 'landing' %}" class="logo">
-                <i data-lucide="sparkles"></i>
+            <a href="{% url 'landing' %}" class="logo" style="display: flex; align-items: center; gap: 0.6rem;">
+                <img src="{% static 'logo.png' %}" alt="Resume Analysis AI+" style="height: 32px; width: auto; border-radius: 4px;">
                 Resume <span>Analysis</span> AI+
             </a>
             

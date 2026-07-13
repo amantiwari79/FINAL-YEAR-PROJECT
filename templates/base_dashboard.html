@@ -546,6 +546,8 @@
 
         {% block extra_css %}{% endblock %}
     </style>
+    <!-- Favicon Logo -->
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -565,9 +567,12 @@
 
 <!-- ── SIDEBAR ── -->
 <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
-        <a href="{% url 'dashboard' %}" class="logo">Resume Analysis <span>AI+</span></a>
-        <p class="sub">Candidate Workspace</p>
+    <div class="sidebar-brand" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.4rem; padding: 0.8rem 1.2rem 1.2rem;">
+        <a href="{% url 'dashboard' %}" style="display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-decoration: none;">
+            <img src="{% static 'logo.png' %}" alt="Logo" style="max-height: 40px; width: auto; border-radius: 6px;">
+            <span style="font-size: 0.92rem; font-weight: 700; color: #fff;">Resume <span style="color: var(--secondary);">Analysis</span> AI+</span>
+        </a>
+        <p class="sub" style="margin-top: 0.1rem; font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;">Candidate Workspace</p>
     </div>
 
     <p class="sidebar-section-label">Main Menu</p>
@@ -578,14 +583,32 @@
         <li><a href="{% url 'upload_resume' %}" class="{% block nav_upload %}{% endblock %}">
             <i data-lucide="upload"></i> Upload Resume
         </a></li>
-        <li><a href="{% url 'job_matching' %}" class="{% block nav_job_matching %}{% endblock %}">
-            <i data-lucide="target"></i> Job Matching
-        </a></li>
     </ul>
 
     <div class="sidebar-divider"></div>
     <p class="sidebar-section-label">AI Tools</p>
     <ul class="sidebar-nav">
+        <li><a href="{% url 'job_matching' %}" class="{% block nav_job_matching %}{% endblock %}">
+            <i data-lucide="target"></i> Job Matching
+        </a></li>
+        {% with latest_resume=request.user.resumes.first %}
+            {% if latest_resume %}
+                <li><a href="{% url 'ats_scan' latest_resume.id %}" class="{% block nav_ats_scan %}{% endblock %}">
+                    <i data-lucide="scan"></i> ATS Scanner
+                </a></li>
+                <li><a href="{% url 'interview_prep' latest_resume.id %}" class="{% block nav_interview_prep %}{% endblock %}">
+                    <i data-lucide="help-circle"></i> Interview Prep
+                </a></li>
+            {% else %}
+                <li><a href="{% url 'upload_resume' %}" class="disabled-link" title="Upload a resume first to scan" style="opacity: 0.6; display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-muted); text-decoration: none;">
+                    <i data-lucide="scan"></i> ATS Scanner <span style="font-size: 0.65rem; background: rgba(184,144,71,0.15); color: var(--secondary); padding: 0.1rem 0.3rem; border-radius: 4px; margin-left: auto; font-weight: 600;">Lock</span>
+                </a></li>
+                <li><a href="{% url 'upload_resume' %}" class="disabled-link" title="Upload a resume first for interview prep" style="opacity: 0.6; display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-muted); text-decoration: none;">
+                    <i data-lucide="help-circle"></i> Interview Prep <span style="font-size: 0.65rem; background: rgba(184,144,71,0.15); color: var(--secondary); padding: 0.1rem 0.3rem; border-radius: 4px; margin-left: auto; font-weight: 600;">Lock</span>
+                </a></li>
+            {% endif %}
+        {% endwith %}
+
         <li><a href="{% url 'career_coach' %}" class="{% block nav_career_coach %}{% endblock %}">
             <i data-lucide="message-circle"></i> Career Coach
         </a></li>

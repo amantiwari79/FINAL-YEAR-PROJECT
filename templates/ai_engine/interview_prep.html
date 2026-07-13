@@ -1,6 +1,51 @@
 {% extends 'base_dashboard.html' %}
 
 {% block title %}Interview Preparation - {{ resume.title }}{% endblock %}
+{% block nav_interview_prep %}active{% endblock %}
+
+{% block extra_css %}
+/* Loading Animations */
+@keyframes pulse {
+    0% { transform: scale(0.9); opacity: 1; }
+    100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes scan-spin {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--secondary);
+    border-radius: 50%;
+    display: inline-block;
+    animation: loading-bounce 1.4s infinite ease-in-out both;
+}
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes loading-bounce {
+    0%, 80%, 100% { transform: scale(0.3); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes button-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.spin {
+    display: inline-block;
+    animation: button-spin 1s linear infinite;
+}
+.ai-progress-bar { width: 240px; height: 4px; background: var(--border); border-radius: 999px; overflow: hidden; margin: 0 auto; }
+.ai-progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 999px; animation: progressPulse 2s infinite; }
+@keyframes progressPulse { 0% { width: 0%; } 50% { width: 85%; } 100% { width: 100%; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.results-animate { animation: fadeInUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -27,21 +72,43 @@
             Paste a target job description to get customized mock interview questions based on your resume and the role requirements.
         </p>
 
-        <form method="POST">
+        <form method="POST" id="interview-prep-form">
             {% csrf_token %}
             <div class="form-group">
                 <label for="job_description">Target Job Description</label>
                 <textarea name="job_description" id="job_description" rows="14" class="form-input" required
                     placeholder="Paste the job description to tailor the interview questions..."></textarea>
             </div>
-            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;" id="submit-btn">
                 <i data-lucide="zap"></i> Generate Questions
             </button>
         </form>
     </div>
 
     <!-- Right Panel: Questions -->
-    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+    <div style="display: flex; flex-direction: column; gap: 1.2rem; width: 100%;" id="results-panel">
+        <!-- Loading State Card (Initially Hidden) -->
+        <div class="card card-padded" id="loading-card" style="display: none; padding: 4rem 2rem; text-align: center; flex-direction: column; align-items: center; justify-content: center; gap: 1.8rem; min-height: 380px;">
+            <div class="scanner-container" style="position: relative; width: 84px; height: 84px; margin-bottom: 0.5rem;">
+                <div class="pulse-circle" style="position: absolute; inset: 0; border-radius: 50%; background: var(--primary-light); animation: pulse 2s infinite ease-in-out;"></div>
+                <div class="pulse-circle" style="position: absolute; inset: 12px; border-radius: 50%; background: var(--primary-light); animation: pulse 2s infinite ease-in-out; animation-delay: 0.5s;"></div>
+                <div style="position: absolute; inset: 22px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 4px 12px rgba(10,92,54,0.3);">
+                    <i data-lucide="help-circle" style="width: 26px; height: 26px; animation: scan-spin 3s linear infinite;"></i>
+                </div>
+            </div>
+            <div>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.6rem;">Generating Interview Prep</h3>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 340px; margin: 0 auto; line-height: 1.6;" id="loading-status-text">Analyzing job description requirements...</p>
+            </div>
+            <div style="display: flex; gap: 0.4rem; justify-content: center; align-items: center;">
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+            </div>
+            <div class="ai-progress-bar"><div class="ai-progress-bar-fill"></div></div>
+        </div>
+
+        <div id="results-content" class="results-animate" style="display: flex; flex-direction: column; gap: 1.2rem; width: 100%;">
         {% if prep_data %}
         <div class="card card-padded" style="padding: 1.8rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
@@ -56,13 +123,13 @@
 
                     <span class="badge badge-purple" style="margin-bottom: 0.6rem; display: inline-flex;">{{ question.type }}</span>
 
-                    <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); line-height: 1.5; margin-bottom: 0.8rem;">{{ question.question }}</h4>
+                    <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); line-height: 1.5; margin-bottom: 0.8rem;"><span class="md-content">{{ question.question }}</span></h4>
 
                     <details style="border-top: 1px solid var(--border); padding-top: 0.8rem;">
                         <summary style="font-size: 0.78rem; font-weight: 600; color: var(--secondary); cursor: pointer; display: flex; align-items: center; gap: 0.3rem; list-style: none;">
                             <i data-lucide="lightbulb" style="width: 13px; height: 13px;"></i> View Answering Tips
                         </summary>
-                        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.6rem; line-height: 1.6; background: var(--surface); padding: 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">{{ question.tips }}</p>
+                        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.6rem; line-height: 1.6; background: var(--surface); padding: 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border);"><span class="md-content">{{ question.tips }}</span></p>
                     </details>
                 </div>
                 {% endfor %}
@@ -78,7 +145,66 @@
             <p>Paste a job description on the left and click "Generate Questions" to prepare for your interview.</p>
         </div>
         {% endif %}
+        </div>
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    marked.setOptions({ headerIds: false, mangle: false });
+    document.querySelectorAll('.md-content').forEach(el => {
+        if (el.textContent.trim()) el.innerHTML = marked.parse(el.textContent);
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        const prepForm = document.getElementById('interview-prep-form');
+        const textarea = document.getElementById('job_description');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultsContent = document.getElementById('results-content');
+        const loadingCard = document.getElementById('loading-card');
+        const statusText = document.getElementById('loading-status-text');
+
+        if (prepForm && textarea && submitBtn && resultsContent && loadingCard) {
+            const statusSteps = [
+                "Analyzing job description requirements...",
+                "Mapping qualifications to resume experience...",
+                "Formulating standard and role-specific questions...",
+                "Structuring target answering tips & guidelines...",
+                "Polishing final custom mock interview dataset..."
+            ];
+
+            let stepIndex = 0;
+            let statusInterval = null;
+
+            prepForm.addEventListener('submit', function(e) {
+                if (!textarea.value.trim()) {
+                    e.preventDefault();
+                    return;
+                }
+
+                // Swap visibility
+                resultsContent.style.display = 'none';
+                loadingCard.style.display = 'flex';
+
+                // Disable submission UI
+                textarea.readOnly = true;
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.7';
+                submitBtn.innerHTML = `<i data-lucide="loader" class="spin" style="width: 14px; height: 14px; margin-right: 6px;"></i> Generating...`;
+
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+
+                // Dynamic loading steps rotation
+                statusInterval = setInterval(() => {
+                    stepIndex = (stepIndex + 1) % statusSteps.length;
+                    statusText.textContent = statusSteps[stepIndex];
+                }, 2000);
+            });
+        }
+    });
+</script>
 {% endblock %}

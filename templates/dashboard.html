@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Resume Analysis AI+</title>
     <meta name="description" content="Manage, scan, and optimize your resumes with AI-powered insights.">
+    <!-- Favicon Logo -->
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
@@ -86,7 +88,7 @@
             margin-bottom: 0.4rem;
         }
 
-        .sidebar-nav { list-style: none; padding: 0 0.6rem; flex: 1; }
+        .sidebar-nav { list-style: none; padding: 0 0.6rem; }
 
         .sidebar-nav li a {
             display: flex;
@@ -304,7 +306,7 @@
 
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 1rem;
         }
 
@@ -353,6 +355,8 @@
         .icon-gold   { background: rgba(184,144,71,0.1); color: var(--secondary); }
         .icon-blue   { background: rgba(37,99,235,0.08); color: #2563eb; }
         .icon-purple { background: rgba(147,51,234,0.08); color: #9333ea; }
+        .icon-pink   { background: rgba(219,39,119,0.08); color: #db2777; }
+        .icon-orange { background: rgba(234,88,12,0.08);  color: #ea580c; }
 
         /* ────── RESUME CARDS ────── */
         .resume-grid {
@@ -521,9 +525,12 @@
 
 <!-- ── SIDEBAR ── -->
 <aside class="sidebar">
-    <div class="sidebar-brand">
-        <div class="logo">Resume Analysis <span>AI+</span></div>
-        <p class="sub">Candidate Workspace</p>
+    <div class="sidebar-brand" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.4rem; padding: 0.8rem 1.2rem 1.2rem;">
+        <a href="{% url 'dashboard' %}" style="display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-decoration: none;">
+            <img src="{% static 'logo.png' %}" alt="Logo" style="max-height: 40px; width: auto; border-radius: 6px;">
+            <span style="font-size: 0.92rem; font-weight: 700; color: #fff;">Resume <span style="color: var(--secondary);">Analysis</span> AI+</span>
+        </a>
+        <p class="sub" style="margin-top: 0.1rem; font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;">Candidate Workspace</p>
     </div>
 
     <p class="sidebar-section-label">Main Menu</p>
@@ -534,14 +541,27 @@
         <li><a href="{% url 'upload_resume' %}">
             <i data-lucide="upload"></i> Upload Resume
         </a></li>
-        <li><a href="{% url 'job_matching' %}">
-            <i data-lucide="target"></i> Job Matching
-        </a></li>
     </ul>
 
     <div class="sidebar-divider"></div>
     <p class="sidebar-section-label">AI Tools</p>
     <ul class="sidebar-nav">
+        <li><a href="{% url 'job_matching' %}">
+            <i data-lucide="target"></i> Job Matching
+        </a></li>
+        {% with latest_resume=resumes.first %}
+            {% if latest_resume %}
+                <li><a href="{% url 'ats_scan' latest_resume.id %}">
+                    <i data-lucide="scan"></i> ATS Scanner
+                </a></li>
+                <li><a href="{% url 'interview_prep' latest_resume.id %}">
+                    <i data-lucide="help-circle"></i> Interview Prep
+                </a></li>
+            {% else %}
+                <li><a href="{% url 'upload_resume' %}" class="disabled-link" title="Upload a resume first to scan" style="opacity: 0.6; display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: var(--text-muted); text-decoration: none;">
+            {% endif %}
+        {% endwith %}
+
         <li><a href="{% url 'career_coach' %}">
             <i data-lucide="message-circle"></i> Career Coach
         </a></li>
@@ -632,21 +652,21 @@
             <h2>⚡ AI Tools</h2>
         </div>
         <div class="tools-grid">
+            <a href="{% url 'job_matching' %}" class="tool-card">
+                <div class="tool-icon icon-orange"><i data-lucide="target"></i></div>
+                <div class="tool-name">Job Matching</div>
+                <div class="tool-desc">Match your resume against job requirements</div>
+            </a>
             {% for resume in resumes|slice:":1" %}
             <a href="{% url 'ats_scan' resume.pk %}" class="tool-card">
                 <div class="tool-icon icon-green"><i data-lucide="scan-line"></i></div>
                 <div class="tool-name">ATS Scanner</div>
                 <div class="tool-desc">Check keyword match against any job description</div>
             </a>
-            <a href="{% url 'bullet_improver' resume.pk %}" class="tool-card">
-                <div class="tool-icon icon-gold"><i data-lucide="wand-2"></i></div>
-                <div class="tool-name">Bullet Improver</div>
-                <div class="tool-desc">Rewrite experience bullets with AI metrics</div>
-            </a>
-            <a href="{% url 'cover_letter' resume.pk %}" class="tool-card">
-                <div class="tool-icon icon-blue"><i data-lucide="file-pen"></i></div>
-                <div class="tool-name">Cover Letter</div>
-                <div class="tool-desc">Generate a tailored cover letter instantly</div>
+            <a href="{% url 'interview_prep' resume.pk %}" class="tool-card">
+                <div class="tool-icon icon-pink"><i data-lucide="help-circle"></i></div>
+                <div class="tool-name">Interview Prep</div>
+                <div class="tool-desc">Prepare for interviews with AI-tailored questions</div>
             </a>
             {% empty %}
             <a href="{% url 'upload_resume' %}" class="tool-card">
@@ -655,14 +675,9 @@
                 <div class="tool-desc">Upload a resume to start scanning</div>
             </a>
             <a href="{% url 'upload_resume' %}" class="tool-card">
-                <div class="tool-icon icon-gold"><i data-lucide="wand-2"></i></div>
-                <div class="tool-name">Bullet Improver</div>
-                <div class="tool-desc">Upload a resume to improve bullets</div>
-            </a>
-            <a href="{% url 'upload_resume' %}" class="tool-card">
-                <div class="tool-icon icon-blue"><i data-lucide="file-pen"></i></div>
-                <div class="tool-name">Cover Letter</div>
-                <div class="tool-desc">Upload a resume to generate cover letters</div>
+                <div class="tool-icon icon-pink"><i data-lucide="help-circle"></i></div>
+                <div class="tool-name">Interview Prep</div>
+                <div class="tool-desc">Upload a resume for mock questions</div>
             </a>
             {% endfor %}
             <a href="{% url 'career_coach' %}" class="tool-card">

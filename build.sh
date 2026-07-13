@@ -21,9 +21,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 admin_accounts = [
-    'admin@123gmail.com',
-    'admin123@gmail.com',
-    'admin@gmail.com',
+    'admin1@gmail.com',
 ]
 
 for email in admin_accounts:

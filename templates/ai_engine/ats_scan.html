@@ -1,136 +1,664 @@
 {% extends 'base_dashboard.html' %}
 
-{% block title %}ATS Score Scan - {{ resume.title }}{% endblock %}
+{% block title %}Resume Analysis Report - {{ resume.title }}{% endblock %}
+{% block nav_ats_scan %}active{% endblock %}
+
+{% block extra_css %}
+@keyframes pulse { 0%{transform:scale(0.9);opacity:1} 100%{transform:scale(1.4);opacity:0} }
+@keyframes scan-spin { 0%{transform:rotate(0deg)} 50%{transform:rotate(180deg) scale(1.1)} 100%{transform:rotate(360deg)} }
+@keyframes loading-bounce { 0%,80%,100%{transform:scale(0.3);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+@keyframes button-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes countUp { from{opacity:0} to{opacity:1} }
+
+.spin { display:inline-block; animation:button-spin 1s linear infinite; }
+.loading-dot { width:8px;height:8px;background:var(--secondary);border-radius:50%;display:inline-block;animation:loading-bounce 1.4s infinite ease-in-out both; }
+.loading-dot:nth-child(1){animation-delay:-0.32s}.loading-dot:nth-child(2){animation-delay:-0.16s}
+.ai-progress-bar{width:240px;height:4px;background:var(--border);border-radius:999px;overflow:hidden;margin:0 auto}
+.ai-progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:999px;animation:progressPulse 2s infinite}
+@keyframes progressPulse{0%{width:0%}50%{width:85%}100%{width:100%}}
+
+/* Report page layout */
+.report-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;
+}
+.report-header-left h1 { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.2rem; }
+.report-header-left p { font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.4rem; }
+
+/* Score metric cards */
+.score-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+@media(max-width:900px){.score-cards{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.score-cards{grid-template-columns:repeat(2,1fr)}}
+
+.score-card {
+    background: #fff; border-radius: var(--radius); border: 1px solid var(--border);
+    padding: 1.2rem 1rem; text-align: center;
+    box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeInUp 0.4s both;
+}
+.score-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.score-card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.8rem; }
+.score-card-value { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 0.2rem; }
+.score-card-label { font-size: 0.75rem; font-weight: 600; }
+
+/* Circular gauge SVG */
+.gauge-wrap { position: relative; width: 80px; height: 80px; margin: 0 auto 0.5rem; }
+.gauge-wrap svg { width: 80px; height: 80px; transform: rotate(-90deg); }
+.gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.gauge-center .val { font-size: 1.1rem; font-weight: 800; line-height: 1; }
+.gauge-center .unit { font-size: 0.6rem; color: var(--text-muted); font-weight: 600; }
+
+/* Charts grid: 2 columns side by side, then 2 below, then 2 below */
+.charts-grid-2x3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+@media(max-width:900px){
+    .charts-grid-2x3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chart-card {
+    background: #fff; border-radius: var(--radius); border: 1px solid var(--border);
+    padding: 1.2rem; box-shadow: var(--shadow);
+    animation: fadeInUp 0.5s both;
+}
+.chart-card-title { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; }
+
+/* CSS chart-wrap to restrict canvas height */
+.chart-wrap {
+    position: relative;
+    height: 180px;
+    width: 100%;
+}
+
+/* Strength meter */
+.strength-meter { margin: 1rem 0; }
+.strength-arc-wrap { position: relative; width: 140px; height: 75px; margin: 0 auto; overflow: hidden; }
+.strength-arc-wrap svg { width: 140px; height: 140px; }
+.strength-label { text-align: center; margin-top: 0.4rem; }
+
+/* Keyword tags */
+.tag { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 500; margin: 0.15rem; }
+.tag-green { background: var(--success-light); color: var(--success); border: 1px solid rgba(22,163,74,0.2); }
+.tag-red { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(220,38,38,0.15); }
+
+/* Strength checklist */
+.strength-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-primary); margin-bottom: 0.5rem; }
+.strength-item .dot { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dot-green { background: var(--success-light); color: var(--success); }
+.dot-red { background: var(--danger-light); color: var(--danger); }
+
+/* Styling for HTML2PDF printing mode */
+.html2pdf-printing {
+    width: 1080px !important;
+    max-width: 1080px !important;
+    margin: 0 auto !important;
+    background: #f8fafc !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+}
+.html2pdf-printing .chart-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 20px !important;
+}
+.html2pdf-printing .score-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1>ATS Match Scanner</h1>
-        <p>Scanning: <strong>{{ resume.title }}</strong> — v{{ resume.current_version }}</p>
+
+<!-- Report header -->
+<div class="report-header">
+    <div class="report-header-left">
+        <h1>Resume Analysis Report</h1>
+        <p><i data-lucide="file-text" style="width:13px;height:13px;"></i> {{ resume.title }}{% if resume.current_version %} · v{{ resume.current_version }}{% endif %}</p>
     </div>
-    <a href="{% url 'resume_detail' resume.pk %}" class="back-link">
-        <i data-lucide="arrow-left"></i> Back to Resume
-    </a>
+    {% if feedback_report %}
+    <div style="display:flex;gap:0.7rem;flex-wrap:wrap;">
+        <button onclick="downloadReportPDF()" class="btn-primary" style="font-size:0.8rem;padding:0.5rem 1rem;cursor:pointer;display:flex;align-items:center;gap:0.4rem;border:none;border-radius:6px;">
+            <i data-lucide="download" style="width:14px;height:14px;"></i> Download PDF
+        </button>
+        <a href="{% url 'ats_scan' resume.pk %}" class="btn-secondary" style="font-size:0.8rem;padding:0.5rem 1rem;text-decoration:none;display:flex;align-items:center;gap:0.4rem;">
+            <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> New Scan
+        </a>
+    </div>
+    {% endif %}
 </div>
 
-<div class="grid-2" style="align-items: start;">
-
-    <!-- Left Panel: Input -->
-    <div class="card card-padded" style="padding: 1.8rem;">
-        <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.6rem;">
-            <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary);">
-                <i data-lucide="scan-line" style="width: 18px; height: 18px;"></i>
-            </div>
-            <h2 style="font-size: 1rem; font-weight: 700; color: var(--text-primary);">Job Description</h2>
+<!-- Loading card -->
+<div class="card card-padded" id="loading-card" style="display:none;padding:4rem 2rem;text-align:center;flex-direction:column;align-items:center;justify-content:center;gap:1.8rem;min-height:300px;background:#fff;border-radius:var(--radius);border:1px solid var(--border);">
+    <div style="position:relative;width:84px;height:84px;margin-bottom:0.5rem;margin:0 auto;">
+        <div style="position:absolute;inset:0;border-radius:50%;background:var(--primary-light);animation:pulse 2s infinite ease-in-out;"></div>
+        <div style="position:absolute;inset:12px;border-radius:50%;background:var(--primary-light);animation:pulse 2s infinite ease-in-out;animation-delay:0.5s;"></div>
+        <div style="position:absolute;inset:22px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 12px rgba(10,92,54,0.3);">
+            <i data-lucide="scan" style="width:26px;height:26px;animation:scan-spin 3s linear infinite;"></i>
         </div>
-        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1.4rem; line-height: 1.5;">
-            Paste the target job description below to scan your resume against its criteria and get a keyword match score.
-        </p>
-
-        <form method="POST">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="job_description">Target Job Description</label>
-                <textarea name="job_description" id="job_description" rows="14" class="form-input" required
-                    placeholder="Paste the job requirements, duties, and skills list here...">{% if feedback_report %}{{ feedback_report.job_description }}{% endif %}</textarea>
-            </div>
-            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
-                <i data-lucide="zap"></i> Analyze Compatibility
-            </button>
-        </form>
     </div>
-
-    <!-- Right Panel: Results -->
-    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
-        {% if feedback_report %}
-
-            <!-- Score Card -->
-            <div class="card card-padded" style="padding: 1.8rem; text-align: center;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                    <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">Scan Report</h3>
-                    <span class="badge {% if feedback_report.score >= 80 %}badge-green{% elif feedback_report.score >= 60 %}badge-gold{% else %}badge-red{% endif %}">
-                        {% if feedback_report.score >= 80 %}Highly Compatible{% elif feedback_report.score >= 60 %}Moderate Match{% else %}Action Required{% endif %}
-                    </span>
-                </div>
-
-                <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 1.5rem;">
-                    <div style="position: relative; width: 110px; height: 110px;">
-                        <svg viewBox="0 0 36 36" style="width: 110px; height: 110px; transform: rotate(-90deg);">
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--border)" stroke-width="2.5"/>
-                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
-                                stroke="{% if feedback_report.score >= 80 %}var(--success){% elif feedback_report.score >= 60 %}var(--warning){% else %}var(--danger){% endif %}"
-                                stroke-width="2.5"
-                                stroke-dasharray="{{ feedback_report.score }}, 100"/>
-                        </svg>
-                        <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                            <span style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); line-height: 1;">{{ feedback_report.score }}</span>
-                            <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">ATS%</span>
-                        </div>
-                    </div>
-                    <div style="text-align: left;">
-                        <p style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 0.3rem;">Assessment</p>
-                        <p style="font-size: 0.88rem; color: var(--text-primary); line-height: 1.5; max-width: 200px;">{{ feedback_report.feedback.overall_assessment|truncatewords:25 }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Keywords -->
-            <div class="card card-padded" style="padding: 1.5rem;">
-                <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1.2rem; color: var(--text-primary);">Keywords & Skills</h3>
-
-                <div style="margin-bottom: 1.2rem;">
-                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem;">
-                        <i data-lucide="check-circle" style="width: 14px; height: 14px; color: var(--success);"></i>
-                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--success);">Matching Keywords</span>
-                    </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-                        {% for skill in feedback_report.feedback.matching_skills %}
-                            <span style="background: var(--success-light); border: 1px solid rgba(22,163,74,0.2); padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; color: var(--success);">{{ skill }}</span>
-                        {% empty %}
-                            <span style="font-size: 0.82rem; color: var(--text-muted);">No matching keywords found yet.</span>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <div>
-                    <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem;">
-                        <i data-lucide="alert-circle" style="width: 14px; height: 14px; color: var(--warning);"></i>
-                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--warning);">Missing Keywords</span>
-                    </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-                        {% for keyword in feedback_report.feedback.missing_keywords %}
-                            <span style="background: var(--warning-light); border: 1px solid rgba(217,119,6,0.2); padding: 0.25rem 0.7rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; color: var(--warning);">{{ keyword }}</span>
-                        {% empty %}
-                            <span style="font-size: 0.82rem; color: var(--success); font-weight: 500;">✓ All major keywords matched!</span>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Suggestions -->
-            <div class="card card-padded" style="padding: 1.5rem;">
-                <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Actionable Suggestions</h3>
-                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem;">
-                    {% for suggestion in feedback_report.feedback.suggestions %}
-                        <li style="display: flex; gap: 0.7rem; align-items: flex-start; font-size: 0.85rem; color: var(--text-primary); line-height: 1.5;">
-                            <i data-lucide="check-square" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; margin-top: 0.1rem;"></i>
-                            {{ suggestion }}
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-        {% else %}
-            <!-- Empty State -->
-            <div class="empty-state" style="padding: 3rem 2rem;">
-                <div class="empty-icon">
-                    <i data-lucide="target"></i>
-                </div>
-                <h3>Awaiting Scan</h3>
-                <p>Paste a job description on the left and click "Analyze Compatibility" to start scanning your resume.</p>
-            </div>
-        {% endif %}
+    <div>
+        <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:0.5rem;">Analyzing Your Resume</h3>
+        <p style="font-size:0.85rem;color:var(--text-secondary);max-width:320px;margin:0 auto;line-height:1.6;" id="loading-status-text">Scanning keyword match against job description...</p>
     </div>
-
+    <div style="display:flex;gap:0.4rem;justify-content:center;">
+        <span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span>
+    </div>
+    <div class="ai-progress-bar" style="margin-top:1rem;"><div class="ai-progress-bar-fill"></div></div>
 </div>
+
+<!-- Scan form (shown when no results) -->
+{% if not feedback_report %}
+<div class="card card-padded" style="padding:2rem;max-width:680px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1.2rem;">
+        <div style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);">
+            <i data-lucide="scan-line" style="width:18px;height:18px;"></i>
+        </div>
+        <div>
+            <h2 style="font-size:1rem;font-weight:700;color:var(--text-primary);">ATS Score Scanner</h2>
+            <p style="font-size:0.78rem;color:var(--text-muted);">Paste the target job description to get a full report</p>
+        </div>
+    </div>
+    <form method="POST" id="ats-scan-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="job_description">Target Job Description</label>
+            <textarea name="job_description" id="job_description" rows="10" class="form-input" required
+                placeholder="Paste the job description here to get a full analytics report..."></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;justify-content:center;" id="submit-btn">
+            <i data-lucide="zap"></i> Generate Analysis Report
+        </button>
+    </form>
+</div>
+
+{% else %}
+
+<!-- ── REPORT DASHBOARD ── -->
+<div id="report-dashboard">
+
+<!-- TOP SCORE CARDS -->
+{% with fb=feedback_report.feedback %}
+{% with score=feedback_report.score %}
+{% with breakdown=fb.score_breakdown %}
+{% with grammar=fb.grammar_score|default:80 %}
+{% with matching=fb.matching_skills %}
+{% with missing=fb.missing_keywords %}
+{% with total_kw=matching|length|add:missing|length %}
+
+<div class="score-cards">
+    <!-- ATS Score -->
+    <div class="score-card" style="animation-delay:0.05s;">
+        <div class="score-card-title">ATS Score</div>
+        <div class="gauge-wrap">
+            <svg viewBox="0 0 36 36">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--border)" stroke-width="3"/>
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
+                    stroke="{% if score >= 80 %}#16a34a{% elif score >= 60 %}#d97706{% else %}#dc2626{% endif %}"
+                    stroke-width="3" stroke-dasharray="{{ score }}, 100" stroke-linecap="round"/>
+            </svg>
+            <div class="gauge-center">
+                <span class="val" style="color:{% if score >= 80 %}var(--success){% elif score >= 60 %}var(--warning){% else %}var(--danger){% endif %};">{{ score }}</span>
+                <span class="unit">/100</span>
+            </div>
+        </div>
+        <div class="score-card-label" style="color:{% if score >= 80 %}var(--success){% elif score >= 60 %}var(--warning){% else %}var(--danger){% endif %};">
+            {% if score >= 80 %}Excellent{% elif score >= 60 %}Good{% else %}Needs Work{% endif %}
+        </div>
+    </div>
+
+    <!-- Job Match -->
+    {% with match=breakdown.ats_score|default:score %}
+    <div class="score-card" style="animation-delay:0.1s;">
+        <div class="score-card-title">Job Match</div>
+        <div class="gauge-wrap">
+            <svg viewBox="0 0 36 36">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--border)" stroke-width="3"/>
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
+                    stroke="#2563eb" stroke-width="3" stroke-dasharray="{{ match }}, 100" stroke-linecap="round"/>
+            </svg>
+            <div class="gauge-center">
+                <span class="val" style="color:#2563eb;">{{ match }}%</span>
+            </div>
+        </div>
+        <div class="score-card-label" style="color:#2563eb;">{% if match >= 80 %}Excellent{% elif match >= 60 %}Good{% else %}Fair{% endif %}</div>
+    </div>
+    {% endwith %}
+
+    <!-- Keywords Found -->
+    <div class="score-card" style="animation-delay:0.15s;">
+        <div class="score-card-title">Keywords Found</div>
+        <div style="margin:0.5rem 0 0.8rem;">
+            <span style="font-size:2rem;font-weight:800;color:var(--success);">{{ matching|length }}</span>
+            <span style="font-size:1rem;color:var(--text-muted);font-weight:600;">/{{ total_kw }}</span>
+        </div>
+        <div class="score-card-label" style="color:var(--success);">Excellent</div>
+    </div>
+
+    <!-- Missing Keywords -->
+    <div class="score-card" style="animation-delay:0.2s;">
+        <div class="score-card-title">Missing Keywords</div>
+        <div style="margin:0.5rem 0 0.8rem;">
+            <span style="font-size:2rem;font-weight:800;color:{% if missing|length > 5 %}var(--danger){% else %}var(--warning){% endif %};">{{ missing|length }}</span>
+            <span style="font-size:1rem;color:var(--text-muted);font-weight:600;">/{{ total_kw }}</span>
+        </div>
+        <div class="score-card-label" style="color:{% if missing|length > 5 %}var(--danger){% else %}var(--warning){% endif %};">
+            {% if missing|length > 5 %}Needs Improvement{% else %}Good{% endif %}
+        </div>
+    </div>
+
+    <!-- Grammar Score -->
+    <div class="score-card" style="animation-delay:0.25s;">
+        <div class="score-card-title">Grammar Score</div>
+        <div class="gauge-wrap">
+            <svg viewBox="0 0 36 36">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--border)" stroke-width="3"/>
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
+                    stroke="#9333ea" stroke-width="3" stroke-dasharray="{{ grammar }}, 100" stroke-linecap="round"/>
+            </svg>
+            <div class="gauge-center">
+                <span class="val" style="color:#9333ea;">{{ grammar }}%</span>
+            </div>
+        </div>
+        <div class="score-card-label" style="color:#9333ea;">{% if grammar >= 80 %}Excellent{% elif grammar >= 60 %}Good{% else %}Fair{% endif %}</div>
+    </div>
+</div>
+
+<!-- 2x3 CHARTS GRID (2 columns side by side, 2 below, 2 below) -->
+<div class="charts-grid-2x3">
+    <!-- Chart 1: Score Breakdown Bar Chart -->
+    <div class="chart-card">
+        <div class="chart-card-title">📊 Score Breakdown</div>
+        <div class="chart-wrap">
+            <canvas id="barChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 2: Radar Chart -->
+    <div class="chart-card">
+        <div class="chart-card-title">🕸️ Overall Resume Quality</div>
+        <div class="chart-wrap">
+            <canvas id="radarChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 3: Skills Distribution Donut -->
+    <div class="chart-card">
+        <div class="chart-card-title">🎯 Skills Distribution</div>
+        <div class="chart-wrap">
+            <canvas id="donutChart"></canvas>
+        </div>
+        {% with sd=fb.skills_distribution %}
+        <div style="margin-top:0.8rem;display:flex;flex-direction:column;gap:0.35rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;">
+                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6366f1;margin-right:5px;"></span>Technical Skills</span>
+                <strong>{{ sd.technical|default:57 }}%</strong>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;">
+                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;margin-right:5px;"></span>Soft Skills</span>
+                <strong>{{ sd.soft|default:21 }}%</strong>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;">
+                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;margin-right:5px;"></span>Tools & Frameworks</span>
+                <strong>{{ sd.tools|default:14 }}%</strong>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;">
+                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f43f5e;margin-right:5px;"></span>Languages</span>
+                <strong>{{ sd.languages|default:8 }}%</strong>
+            </div>
+        </div>
+        {% endwith %}
+    </div>
+
+    <!-- Chart 4: Keyword Match Donut -->
+    <div class="chart-card">
+        <div class="chart-card-title">🔍 Keyword Match</div>
+        <div class="chart-wrap">
+            <canvas id="kwChart"></canvas>
+        </div>
+        <div style="margin-top:0.8rem;display:flex;flex-direction:column;gap:0.4rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.75rem;">
+                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#16a34a;margin-right:5px;"></span>Found</span>
+                <strong>{{ matching|length }} ({% if total_kw > 0 %}{{ matching|length|floatformat:0 }}/{{ total_kw }}{% else %}—{% endif %})</strong>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.75rem;">
+                <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#dc2626;margin-right:5px;"></span>Missing</span>
+                <strong>{{ missing|length }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 5: ATS Score History Line Chart -->
+    <div class="chart-card">
+        <div class="chart-card-title">📈 ATS Score History</div>
+        <div class="chart-wrap">
+            <canvas id="historyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 6: Resume Strength Gauge -->
+    <div class="chart-card">
+        <div class="chart-card-title">💪 Resume Strength</div>
+        <div class="chart-wrap" style="height:110px;">
+            <canvas id="gaugeChart"></canvas>
+        </div>
+        <div class="strength-label" style="margin-bottom:0.8rem;">
+            <span style="font-size:1.1rem;font-weight:800;color:{% if score >= 80 %}var(--success){% elif score >= 60 %}var(--warning){% else %}var(--danger){% endif %};">
+                {% if score >= 80 %}Strong{% elif score >= 60 %}Good{% else %}Needs Work{% endif %}
+            </span>
+            <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.2rem;">Your resume is {% if score >= 80 %}strong and well-optimized!{% elif score >= 60 %}on track with improvements needed.{% else %}missing key elements.{% endif %}</p>
+        </div>
+        <div>
+            {% for suggestion in fb.suggestions|slice:":5" %}
+            <div class="strength-item">
+                <div class="dot dot-green"><i data-lucide="check" style="width:10px;height:10px;"></i></div>
+                <span>{{ suggestion|truncatewords:6 }}</span>
+            </div>
+            {% empty %}
+            <div class="strength-item"><div class="dot dot-green"><i data-lucide="check" style="width:10px;height:10px;"></i></div><span>Clear Objective</span></div>
+            <div class="strength-item"><div class="dot dot-green"><i data-lucide="check" style="width:10px;height:10px;"></i></div><span>Good Skills Match</span></div>
+            <div class="strength-item"><div class="dot dot-green"><i data-lucide="check" style="width:10px;height:10px;"></i></div><span>Relevant Experience</span></div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Keywords & Suggestions row -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+    <div class="chart-card">
+        <div class="chart-card-title">✅ Matched Keywords</div>
+        <div>{% for skill in matching %}<span class="tag tag-green">{{ skill }}</span>{% empty %}<p style="font-size:0.82rem;color:var(--text-muted);">No matches detected yet.</p>{% endfor %}</div>
+    </div>
+    <div class="chart-card">
+        <div class="chart-card-title">⚠️ Missing Keywords</div>
+        <div>{% for kw in missing %}<span class="tag tag-red">{{ kw }}</span>{% empty %}<span style="font-size:0.82rem;color:var(--success);font-weight:600;">✓ All keywords matched!</span>{% endfor %}</div>
+    </div>
+</div>
+
+<div class="chart-card" style="margin-top:1rem;">
+    <div class="chart-card-title">💡 AI Suggestions</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0.8rem;">
+    {% for s in fb.suggestions %}
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.8rem;font-size:0.82rem;color:var(--text-primary);line-height:1.5;display:flex;gap:0.5rem;align-items:flex-start;">
+            <i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--primary);flex-shrink:0;margin-top:0.1rem;"></i>
+            {{ s }}
+        </div>
+    {% endfor %}
+    </div>
+</div>
+
+{% endwith %}{% endwith %}{% endwith %}{% endwith %}{% endwith %}{% endwith %}{% endwith %}
+</div><!-- end report-dashboard -->
+{% endif %}
+
+<!-- Form to rescan -->
+{% if feedback_report %}
+<div class="chart-card" style="margin-top:1rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;">
+        <div>
+            <div class="chart-card-title" style="margin-bottom:0.2rem;">🔄 Re-Scan with Different Job Description</div>
+            <p style="font-size:0.78rem;color:var(--text-muted);">Paste a new job description below to generate a fresh report</p>
+        </div>
+    </div>
+    <form method="POST" id="ats-scan-form" style="margin-top:1rem;display:flex;gap:0.8rem;align-items:flex-end;flex-wrap:wrap;">
+        {% csrf_token %}
+        <div class="form-group" style="flex:1;min-width:200px;margin-bottom:0;">
+            <textarea name="job_description" id="job_description" rows="3" class="form-input" required
+                placeholder="Paste a new job description..."></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="height:fit-content;" id="submit-btn">
+            <i data-lucide="refresh-cw"></i> Re-Analyze
+        </button>
+    </form>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function downloadReportPDF() {
+    const element = document.getElementById('report-dashboard');
+    if (!element) return;
+
+    // Apply printing-helper class
+    element.classList.add('html2pdf-printing');
+
+    const opt = {
+        margin:       [0.4, 0.4, 0.4, 0.4],
+        filename:     'ATS_Analysis_Report_' + '{{ resume.title|slugify }}' + '.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true, 
+            logging: false,
+            windowWidth: 1200
+        },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    // Generate PDF and cleanly remove printing-helper class
+    html2pdf().set(opt).from(element).save().then(() => {
+        element.classList.remove('html2pdf-printing');
+    }).catch(err => {
+        console.error("PDF download failed:", err);
+        element.classList.remove('html2pdf-printing');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ── Loading animation for form ──
+    const form = document.getElementById('ats-scan-form');
+    const loadingCard = document.getElementById('loading-card');
+    const submitBtn = document.getElementById('submit-btn');
+    const statusText = document.getElementById('loading-status-text');
+    const steps = [
+        "Scanning keyword match against job description...",
+        "Evaluating skills and experience alignment...",
+        "Calculating score breakdown by dimension...",
+        "Analyzing grammar and readability...",
+        "Building your comprehensive report..."
+    ];
+    let stepIdx = 0;
+    if (form && loadingCard) {
+        form.addEventListener('submit', function(e) {
+            const ta = form.querySelector('textarea');
+            if (!ta || !ta.value.trim()) { e.preventDefault(); return; }
+            document.getElementById('report-dashboard') && (document.getElementById('report-dashboard').style.display = 'none');
+            loadingCard.style.display = 'flex';
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.7'; submitBtn.innerHTML = '<i data-lucide="loader" class="spin" style="width:14px;height:14px;margin-right:6px;"></i> Analyzing...'; }
+            if (window.lucide) window.lucide.createIcons();
+            setInterval(() => { stepIdx = (stepIdx+1)%steps.length; if(statusText) statusText.textContent = steps[stepIdx]; }, 2000);
+        });
+    }
+
+    // ── Chart.js color palette ──
+    const COLORS = {
+        green:   '#16a34a', blue: '#2563eb', purple: '#9333ea',
+        orange:  '#f97316', red: '#dc2626', gold: '#d97706',
+        teal:    '#0d9488', pink: '#ec4899', indigo: '#6366f1',
+        amber:   '#f59e0b', emerald:'#10b981', rose:'#f43f5e'
+    };
+    const chartDefaults = { font: { family: 'Inter, sans-serif', size: 11 } };
+    Chart.defaults.font = chartDefaults.font;
+
+    {% if feedback_report %}
+    {% with fb=feedback_report.feedback %}
+    {% with score=feedback_report.score %}
+
+    // ── 1. Bar chart (score breakdown) ──
+    const barCtx = document.getElementById('barChart');
+    if (barCtx) {
+        const bd = {{ fb.score_breakdown|default:"{}"|safe }};
+        const labels = ['ATS Score', 'Skills', 'Experience', 'Education', 'Formatting', 'Readability'];
+        const vals = [
+            bd.ats_score || {{ score }},
+            bd.skills || 70,
+            bd.experience || 68,
+            bd.education || 80,
+            bd.formatting || 75,
+            bd.readability || 72
+        ];
+        const barColors = [COLORS.indigo, COLORS.teal, COLORS.orange, COLORS.emerald, COLORS.pink, COLORS.purple];
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{ label: 'Score (%)', data: vals, backgroundColor: barColors, borderRadius: 6, borderSkipped: false }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + '%' } } },
+                scales: {
+                    y: { min: 0, max: 100, grid: { color: '#f0f0f0' }, ticks: { callback: v => v + '%' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // ── 2. Radar chart ──
+    const radarCtx = document.getElementById('radarChart');
+    if (radarCtx) {
+        const bd = {{ fb.score_breakdown|default:"{}"|safe }};
+        const labels = ['ATS Score', 'Skills', 'Experience', 'Education', 'Formatting', 'Readability'];
+        const vals = [
+            bd.ats_score || {{ score }},
+            bd.skills || 70,
+            bd.experience || 68,
+            bd.education || 80,
+            bd.formatting || 75,
+            bd.readability || 72
+        ];
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Your Resume', data: vals, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: COLORS.indigo, borderWidth: 2, pointBackgroundColor: COLORS.indigo, pointRadius: 4 },
+                    { label: 'Good Benchmark', data: [80,80,80,80,80,80], backgroundColor: 'rgba(16,185,129,0.05)', borderColor: COLORS.emerald, borderWidth: 1, borderDash: [5,5], pointRadius: 0 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { r: { min: 0, max: 100, ticks: { stepSize: 25, font: { size: 9 } }, pointLabels: { font: { size: 10, weight: '600' } } } },
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+            }
+        });
+    }
+
+    // ── 3. Skills distribution donut ──
+    const donutCtx = document.getElementById('donutChart');
+    if (donutCtx) {
+        const sd = {{ fb.skills_distribution|default:"{}"|safe }};
+        const vals = Object.keys(sd).length ? Object.values(sd) : [57,21,14,8];
+        new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Technical','Soft Skills','Tools','Languages'],
+                datasets: [{ data: vals, backgroundColor: [COLORS.indigo, COLORS.amber, COLORS.emerald, COLORS.rose], borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '62%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + '%' } }
+                }
+            }
+        });
+    }
+
+    // ── 4. Keyword match donut ──
+    const kwCtx = document.getElementById('kwChart');
+    if (kwCtx) {
+        const found = {{ fb.matching_skills|length }};
+        const miss  = {{ fb.missing_keywords|length }};
+        const total = found + miss || 1;
+        new Chart(kwCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Found','Missing'],
+                datasets: [{ data: [found, miss || 0.001], backgroundColor: [COLORS.green, COLORS.red], borderWidth: 2, borderColor: '#fff', hoverOffset: 4 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '65%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw } }
+                }
+            }
+        });
+    }
+
+    // ── 5. Score history line chart ──
+    const histCtx = document.getElementById('historyChart');
+    if (histCtx) {
+        const history = {{ score_history|safe }};
+        const labels = history.length ? history.map(h => h.date) : ['Jan','Feb','Mar','Apr','May','Jun'];
+        const vals   = history.length ? history.map(h => h.score) : [62,68,73,78,82,{{ score }}];
+        new Chart(histCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'ATS Score',
+                    data: vals,
+                    borderColor: COLORS.indigo,
+                    backgroundColor: 'rgba(99,102,241,0.08)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: COLORS.indigo,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' Score: ' + ctx.raw } } },
+                scales: {
+                    y: { min: 0, max: 100, grid: { color: '#f0f0f0' }, ticks: { callback: v => v } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // ── 6. Strength gauge (half-doughnut) ──
+    const gaugeCtx = document.getElementById('gaugeChart');
+    if (gaugeCtx) {
+        const s = {{ score }};
+        const color = s >= 80 ? COLORS.green : s >= 60 ? COLORS.gold : COLORS.red;
+        new Chart(gaugeCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [s, 100 - s],
+                    backgroundColor: [color, '#f0f0f0'],
+                    borderWidth: 0,
+                    circumference: 180,
+                    rotation: -90
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '72%',
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+    }
+
+    {% endwith %}{% endwith %}
+    {% endif %}
+
+});
+</script>
 {% endblock %}
