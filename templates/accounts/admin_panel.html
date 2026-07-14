@@ -483,6 +483,10 @@
             </div>
         </div>
 
+        <a href="{% url 'login' %}?next={% url 'dashboard' %}" class="sidebar-action-btn">
+            <i data-lucide="user-round"></i> Back to User Login
+        </a>
+
         <form action="{% url 'logout' %}" method="post" style="margin:0;">
             {% csrf_token %}
             <button type="submit" class="sidebar-action-btn danger">

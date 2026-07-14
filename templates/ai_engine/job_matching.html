@@ -312,10 +312,14 @@
                     e.preventDefault();
                     return;
                 }
+                // Show loading UI
                 resultsContent.style.display = 'none';
                 loadingCard.style.display = 'flex';
-                textarea.readOnly = true;
-                select.disabled = true;
+                // Make fields look inactive (but NOT disabled — disabled fields are excluded from POST!)
+                textarea.style.pointerEvents = 'none';
+                textarea.style.opacity = '0.6';
+                select.style.pointerEvents = 'none';
+                select.style.opacity = '0.6';
                 submitBtn.disabled = true;
                 submitBtn.style.opacity = '0.7';
                 submitBtn.innerHTML = `<i data-lucide="loader" class="spin" style="width: 14px; height: 14px; margin-right: 6px;"></i> Analyzing...`;
@@ -326,6 +330,7 @@
                     statusText.textContent = statusSteps[stepIndex];
                 }, 2000);
             });
+
         }
     });
 </script>

@@ -1,3 +1,6 @@
+import os
+
+from django.http import FileResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -118,6 +121,23 @@ def resume_detail(request, pk):
         'feedbacks': feedbacks,
     }
     return render(request, 'resumes/detail.html', context)
+
+
+@login_required
+def preview_resume_pdf(request, pk):
+    """Return the user's current PDF resume with an inline PDF response."""
+    resume = get_object_or_404(Resume, pk=pk, user=request.user)
+
+    if os.path.splitext(resume.file.name)[1].lower() != '.pdf':
+        raise Http404('A PDF preview is not available for this document.')
+
+    resume.file.open('rb')
+    return FileResponse(
+        resume.file,
+        as_attachment=False,
+        filename=os.path.basename(resume.file.name),
+        content_type='application/pdf',
+    )
 
 @login_required
 def delete_resume(request, pk):

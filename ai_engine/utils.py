@@ -390,6 +390,145 @@ Thank you for your time and consideration. I look forward to discussing how my s
 Sincerely,
 [Your Name]"""
 
+def generate_resume_from_details(details):
+    """
+    Generates a polished resume draft from user-provided profile details.
+    Falls back to a deterministic resume draft if the AI client is unavailable.
+    """
+    client = get_gemini_client()
+    if client:
+        try:
+            prompt = f"""
+            Create an ATS-friendly resume from the candidate details below.
+
+            Return ONLY a JSON object with this exact schema:
+            {{
+                "name": "Candidate Name",
+                "headline": "Target role headline",
+                "contact": ["email", "phone", "location", "links"],
+                "summary": "3-4 sentence professional summary",
+                "skills": ["Skill 1", "Skill 2"],
+                "experience": [
+                    {{
+                        "title": "Role Title",
+                        "company": "Company or Project",
+                        "dates": "Dates or duration",
+                        "bullets": ["Impact bullet 1", "Impact bullet 2"]
+                    }}
+                ],
+                "projects": [
+                    {{
+                        "name": "Project Name",
+                        "description": "Short project impact statement",
+                        "bullets": ["Project bullet 1", "Project bullet 2"]
+                    }}
+                ],
+                "education": ["Education item 1", "Education item 2"],
+                "certifications": ["Certification item 1"]
+            }}
+
+            Candidate Details:
+            {json.dumps(details, ensure_ascii=True)}
+            """
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction="You are an expert resume writer. Create concise, ATS-friendly resumes with action verbs, measurable impact where possible, and truthful wording based only on the provided details. Output valid JSON only.",
+                    response_mime_type="application/json",
+                    temperature=0.35
+                )
+            )
+            result = safe_json_loads(response.text)
+            return _normalize_generated_resume(result, details)
+        except Exception as e:
+            print(f"Error generating resume via Gemini: {e}. Falling back to heuristic resume builder.")
+
+    return _fallback_generated_resume(details)
+
+def _split_lines(value):
+    if not value:
+        return []
+    return [line.strip(" -\t") for line in value.splitlines() if line.strip(" -\t")]
+
+def _split_csv(value):
+    if not value:
+        return []
+    parts = re.split(r'[,;\n]+', value)
+    return [part.strip() for part in parts if part.strip()]
+
+def _normalize_generated_resume(result, details):
+    fallback = _fallback_generated_resume(details)
+    normalized = {
+        "name": result.get("name") or fallback["name"],
+        "headline": result.get("headline") or fallback["headline"],
+        "contact": result.get("contact") or fallback["contact"],
+        "summary": result.get("summary") or fallback["summary"],
+        "skills": result.get("skills") or fallback["skills"],
+        "experience": result.get("experience") or fallback["experience"],
+        "projects": result.get("projects") or fallback["projects"],
+        "education": result.get("education") or fallback["education"],
+        "certifications": result.get("certifications") or fallback["certifications"],
+    }
+    return normalized
+
+def _fallback_generated_resume(details):
+    full_name = details.get("full_name") or "Candidate Name"
+    target_role = details.get("target_role") or "Software Professional"
+    email = details.get("email") or "email@example.com"
+    phone = details.get("phone") or "Phone not provided"
+    location = details.get("location") or "Location not provided"
+    links = details.get("links") or ""
+    skills = _split_csv(details.get("skills")) or ["Problem Solving", "Communication", "Project Delivery"]
+    experience_lines = _split_lines(details.get("experience"))
+    project_lines = _split_lines(details.get("projects"))
+    education_lines = _split_lines(details.get("education"))
+    certifications = _split_csv(details.get("certifications"))
+    achievements = _split_lines(details.get("achievements"))
+
+    experience_bullets = [
+        f"Applied {', '.join(skills[:3])} to deliver reliable work aligned with {target_role} responsibilities.",
+        "Collaborated with stakeholders to understand requirements, prioritize tasks, and improve delivery quality.",
+    ]
+    if achievements:
+        experience_bullets.insert(0, achievements[0])
+
+    project_bullets = [
+        "Designed practical features around user needs, clarity, and maintainable implementation.",
+        f"Used {', '.join(skills[:3])} to build a focused solution with measurable learning outcomes.",
+    ]
+    if len(achievements) > 1:
+        project_bullets.insert(0, achievements[1])
+
+    return {
+        "name": full_name,
+        "headline": target_role,
+        "contact": [item for item in [email, phone, location, links] if item],
+        "summary": (
+            f"Motivated {target_role} with hands-on experience across {', '.join(skills[:4])}. "
+            "Known for learning quickly, organizing work clearly, and turning requirements into practical outcomes. "
+            "Brings a detail-oriented approach to problem solving, collaboration, and continuous improvement."
+        ),
+        "skills": skills,
+        "experience": [
+            {
+                "title": target_role,
+                "company": experience_lines[0] if experience_lines else "Relevant Experience",
+                "dates": "Recent",
+                "bullets": experience_bullets,
+            }
+        ],
+        "projects": [
+            {
+                "name": project_lines[0] if project_lines else "Featured Project",
+                "description": f"A practical project demonstrating {target_role} skills.",
+                "bullets": project_bullets,
+            }
+        ],
+        "education": education_lines or ["Education details not provided"],
+        "certifications": certifications,
+    }
+
 def career_coach_chat(chat_history, user_message):
     """
     Acts as an AI career advisor responding to questions in a conversation history.
@@ -425,13 +564,17 @@ def generate_interview_questions(resume_text, job_desc):
     if client:
         try:
             prompt = f"""
-            Generate 3 tailored interview questions based on the candidate's resume and target job requirements.
-            One should be Technical, one Behavioral, and one Situational.
+            Analyze the input under 'Target Input'.
+            If the input is a specific technical topic, general query, or a direct question (e.g. 'explain decorators', 'React state management', or 'what is a decorator?'), generate 10 relevant interview questions and detailed suggested answers or strategy tips directly related to that query/topic.
+            If the input is a standard Job Description, generate 10 interview questions and detailed answering tips/suggested answers matching the job requirements.
+            
+            Always tailor the questions to the candidate's background when applicable.
+            For each question, ensure the "tips" field contains a detailed suggested answer and response strategy.
             
             Return ONLY a JSON object matching this schema:
             {{
                 "questions": [
-                    {{"type": "Technical / Behavioral / Situational", "question": "The question text", "tips": "Helpful tip for answering"}}
+                    {{"type": "Technical / Behavioral / Situational", "question": "The interview question text", "tips": "Detailed suggested answer and strategy"}}
                 ]
             }}
 
@@ -440,7 +583,7 @@ def generate_interview_questions(resume_text, job_desc):
             {resume_text}
             ---
 
-            Target Job Description:
+            Target Input (Job Description / Custom Question / Topic):
             ---
             {job_desc}
             ---
@@ -449,7 +592,7 @@ def generate_interview_questions(resume_text, job_desc):
                 model='gemini-2.5-flash',
                 contents=prompt,
                 config=types.GenerateContentConfig(
-                    system_instruction="You are a professional technical recruiter. Output only valid JSON.",
+                    system_instruction="You are a professional technical recruiter and career advisor. Output only valid JSON containing interview questions and detailed answers/strategies.",
                     response_mime_type="application/json",
                     temperature=0.4
                 )
@@ -458,12 +601,19 @@ def generate_interview_questions(resume_text, job_desc):
         except Exception as e:
             print(f"Error generating interview questions via Gemini: {e}. Falling back to mock questions.")
 
-    # Fallback mock interview questions
+    # Fallback mock interview questions (10 questions)
     return {
         "questions": [
             {"type": "Technical", "question": "Can you describe the lifecycle of a Django request and how middlewares process it?", "tips": "Detail request/response hooks, URL resolution, and view returns."},
             {"type": "Behavioral", "question": "Tell me about a time you had to deliver a feature under a tight deadline. How did you handle it?", "tips": "Use the STAR method: Situation, Task, Action, Result. Emphasize scoping."},
-            {"type": "Situational", "question": "If a database query suddenly begins taking 10 seconds to execute, how would you diagnose and optimize it?", "tips": "Mention EXPLAIN, index analysis, connection pooling, and select_related/prefetch_related."}
+            {"type": "Situational", "question": "If a database query suddenly begins taking 10 seconds to execute, how would you diagnose and optimize it?", "tips": "Mention EXPLAIN, index analysis, connection pooling, and select_related/prefetch_related."},
+            {"type": "Technical", "question": "What is the difference between select_related and prefetch_related in Django ORM?", "tips": "Explain database joins for ForeignKey (select_related) vs separate queries for ManyToMany fields (prefetch_related)."},
+            {"type": "Behavioral", "question": "How do you handle a conflict with a team member when you disagree on a technical design?", "tips": "Showcase active listening, objective data comparison, and collaborating to find a middle ground."},
+            {"type": "Situational", "question": "Imagine your production server goes down and users are seeing a 502 Bad Gateway. What are your first steps to debug?", "tips": "Explain checking system status, logs (Nginx, Gunicorn, Django logs), database connection limits, and active server resources."},
+            {"type": "Technical", "question": "Explain how RESTful API design principles differ from GraphQL. When would you prefer one over the other?", "tips": "Discuss request flexibility, over/under-fetching, HTTP caching, and structure of endpoints."},
+            {"type": "Behavioral", "question": "Describe a major mistake you made in a past project. How did you handle it and what did you learn?", "tips": "Acknowledge responsibility, explain the quick mitigation plan, and focus on the preventive actions taken afterwards."},
+            {"type": "Situational", "question": "How do you handle a request for a feature that contradicts standard security or architectural practices?", "tips": "Focus on educating the stakeholder, offering alternative solutions that meet the business goal safely, and maintaining documentation."},
+            {"type": "Technical", "question": "What are Python generators and decorators, and how are they useful in optimizing backend applications?", "tips": "Discuss decorators for reusable logic (logging, authentication) and generators for memory-efficient data streaming."}
         ]
     }
 

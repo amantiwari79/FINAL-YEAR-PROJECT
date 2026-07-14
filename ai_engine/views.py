@@ -8,7 +8,8 @@ from .models import ATSFeedback, AIActionLog
 from .utils import (
     calculate_ats_score,
     career_coach_chat,
-    generate_interview_questions
+    generate_interview_questions,
+    generate_resume_from_details
 )
 
 @login_required
@@ -193,5 +194,44 @@ def job_matching_view(request):
         'resumes': resumes,
         'match_result': match_result,
         'selected_resume': selected_resume,
+    })
+
+@login_required
+def resume_generator_view(request):
+    """
+    Builds an ATS-friendly resume draft from user-entered career details.
+    """
+    generated_resume = None
+    form_data = {
+        'full_name': f"{request.user.first_name} {request.user.last_name}".strip(),
+        'email': request.user.email,
+    }
+
+    if request.method == 'POST':
+        fields = [
+            'full_name', 'email', 'phone', 'location', 'links', 'target_role',
+            'skills', 'experience', 'projects', 'education', 'certifications',
+            'achievements'
+        ]
+        form_data = {field: request.POST.get(field, '').strip() for field in fields}
+
+        if not form_data.get('full_name') or not form_data.get('target_role') or not form_data.get('skills'):
+            messages.error(request, 'Please add your name, target role, and key skills.')
+        else:
+            t0 = time.time()
+            generated_resume = generate_resume_from_details(form_data)
+            latency = round(time.time() - t0, 2)
+            AIActionLog.objects.create(
+                action='resume_generator',
+                target_name=f"{request.user.first_name} {request.user.last_name} - {form_data.get('target_role')}",
+                tokens_used=sum(len(value.split()) for value in form_data.values()),
+                latency_ms=latency,
+                status='success'
+            )
+            messages.success(request, 'Resume draft generated successfully!')
+
+    return render(request, 'ai_engine/resume_generator.html', {
+        'form_data': form_data,
+        'generated_resume': generated_resume,
     })
 

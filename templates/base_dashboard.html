@@ -591,6 +591,9 @@
         <li><a href="{% url 'job_matching' %}" class="{% block nav_job_matching %}{% endblock %}">
             <i data-lucide="target"></i> Job Matching
         </a></li>
+        <li><a href="{% url 'resume_generator' %}" class="{% block nav_resume_generator %}{% endblock %}">
+            <i data-lucide="file-plus-2"></i> Resume Generator
+        </a></li>
         {% with latest_resume=request.user.resumes.first %}
             {% if latest_resume %}
                 <li><a href="{% url 'ats_scan' latest_resume.id %}" class="{% block nav_ats_scan %}{% endblock %}">

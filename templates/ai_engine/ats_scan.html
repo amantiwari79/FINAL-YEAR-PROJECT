@@ -95,21 +95,54 @@
 
 /* Styling for HTML2PDF printing mode */
 .html2pdf-printing {
-    width: 1080px !important;
-    max-width: 1080px !important;
-    margin: 0 auto !important;
+    margin: 0 !important;
     background: #f8fafc !important;
-    padding: 20px !important;
+    padding: 14px !important;
     box-sizing: border-box !important;
+    overflow: visible !important;
 }
-.html2pdf-printing .chart-card {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-    margin-bottom: 20px !important;
+.html2pdf-printing,
+.html2pdf-printing * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
 }
+.html2pdf-printing .score-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+}
+.html2pdf-printing .charts-grid-2x3 {
+    display: block !important;
+}
+.html2pdf-printing .chart-card,
 .html2pdf-printing .score-card {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    margin-bottom: 14px !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+.html2pdf-printing .chart-wrap {
+    height: 220px !important;
+    min-height: 220px !important;
+    overflow: visible !important;
+}
+.html2pdf-printing canvas {
+    max-width: 100% !important;
+}
+.html2pdf-printing .pdf-chart-image {
+    display: block;
+    width: 100%;
+    height: 220px;
+    object-fit: contain;
+    object-position: center;
+}
+.html2pdf-printing .chart-wrap[style*="height:110px"] {
+    height: 160px !important;
+    min-height: 160px !important;
+}
+.html2pdf-printing .chart-wrap[style*="height:110px"] .pdf-chart-image {
+    height: 160px;
 }
 {% endblock %}
 
@@ -424,11 +457,47 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-function downloadReportPDF() {
+async function downloadReportPDF() {
     const element = document.getElementById('report-dashboard');
     if (!element) return;
 
-    // Apply printing-helper class
+    const downloadButton = document.querySelector('button[onclick="downloadReportPDF()"]');
+    const originalButtonHtml = downloadButton ? downloadButton.innerHTML : '';
+    const originalInlineWidth = element.style.width;
+    const originalInlineMaxWidth = element.style.maxWidth;
+    const originalInlineOverflow = element.style.overflow;
+    const chartReplacements = [];
+
+    if (downloadButton) {
+        downloadButton.disabled = true;
+        downloadButton.innerHTML = '<i data-lucide="loader" class="spin" style="width:14px;height:14px;"></i> Preparing PDF...';
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+    }
+
+    document.querySelectorAll('#report-dashboard canvas').forEach((canvas) => {
+        try {
+            const img = document.createElement('img');
+            img.src = canvas.toDataURL('image/png', 1);
+            img.className = 'pdf-chart-image';
+            img.alt = canvas.getAttribute('aria-label') || 'Report chart';
+            img.style.width = '100%';
+            img.style.maxWidth = '100%';
+            canvas.style.display = 'none';
+            canvas.parentNode.insertBefore(img, canvas.nextSibling);
+            chartReplacements.push({ canvas, img });
+        } catch (err) {
+            console.warn('Chart snapshot skipped:', err);
+        }
+    });
+
+    // Keep the capture narrower than the printable PDF area to avoid horizontal slicing.
+    element.style.width = '640px';
+    element.style.maxWidth = '640px';
+    element.style.overflow = 'visible';
     element.classList.add('html2pdf-printing');
 
     const opt = {
@@ -439,19 +508,34 @@ function downloadReportPDF() {
             scale: 2, 
             useCORS: true, 
             logging: false,
-            windowWidth: 1200
+            windowWidth: 700,
+            height: element.scrollHeight,
+            scrollX: 0,
+            scrollY: 0
         },
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
-        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        pagebreak:    { mode: ['css', 'legacy'], avoid: ['.score-card'] }
     };
 
-    // Generate PDF and cleanly remove printing-helper class
-    html2pdf().set(opt).from(element).save().then(() => {
-        element.classList.remove('html2pdf-printing');
-    }).catch(err => {
+    try {
+        await html2pdf().set(opt).from(element).save();
+    } catch (err) {
         console.error("PDF download failed:", err);
+    } finally {
         element.classList.remove('html2pdf-printing');
-    });
+        chartReplacements.forEach(({ canvas, img }) => {
+            img.remove();
+            canvas.style.display = '';
+        });
+        element.style.width = originalInlineWidth;
+        element.style.maxWidth = originalInlineMaxWidth;
+        element.style.overflow = originalInlineOverflow;
+        if (downloadButton) {
+            downloadButton.disabled = false;
+            downloadButton.innerHTML = originalButtonHtml;
+            if (window.lucide) window.lucide.createIcons();
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {

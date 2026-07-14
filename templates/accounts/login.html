@@ -1,59 +1,101 @@
 {% extends 'base_auth.html' %}
-
 {% block title %}Login - Resume Analysis AI+{% endblock %}
-
 {% block content %}
 <div class="auth-card-header">
-    <h2>Welcome Back</h2>
-    <p>Enter your credentials to access your workspace.</p>
+  <h2>Welcome Back</h2>
+  <p>Enter your credentials to access your workspace.</p>
 </div>
 
 <form method="POST">
-    {% csrf_token %}
+  {% csrf_token %}
 
-    <div class="form-group">
-        <label for="email">Email Address</label>
-        <input type="email" name="email" id="email" class="form-input" required
-            placeholder="name@example.com" autocomplete="email">
+  <div class="form-group">
+    <label for="email">Email Address</label>
+    <input
+      type="email"
+      name="email"
+      id="email"
+      class="form-input"
+      required
+      placeholder="name@example.com"
+      autocomplete="email"
+    />
+  </div>
+
+  <div class="form-group" style="margin-bottom: 1.6rem">
+    <div
+      style="display: flex; justify-content: space-between; align-items: center"
+    >
+      <label for="password">Password</label>
+      <a
+        href="#"
+        style="
+          font-size: 0.78rem;
+          color: var(--text-muted);
+          text-decoration: none;
+          font-weight: 500;
+        "
+        onmouseover="this.style.color = 'var(--primary)'"
+        onmouseout="this.style.color = 'var(--text-muted)'"
+        >Forgot password?</a
+      >
     </div>
+    <input
+      type="password"
+      name="password"
+      id="password"
+      class="form-input"
+      required
+      placeholder="••••••••"
+      autocomplete="current-password"
+    />
+  </div>
 
-    <div class="form-group" style="margin-bottom: 1.6rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <label for="password">Password</label>
-            <a href="#" style="font-size: 0.78rem; color: var(--text-muted); text-decoration: none; font-weight: 500;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">Forgot password?</a>
-        </div>
-        <input type="password" name="password" id="password" class="form-input" required
-            placeholder="••••••••" autocomplete="current-password">
-    </div>
+  <button type="submit" class="btn-primary" style="margin-bottom: 1.2rem">
+    <i data-lucide="log-in" style="width: 16px; height: 16px"></i> Login to
+    Workspace
+  </button>
 
-    <button type="submit" class="btn-primary" style="margin-bottom: 1.2rem;">
-        <i data-lucide="log-in" style="width: 16px; height: 16px;"></i> Login to Workspace
-    </button>
-
-    <p style="text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
-        Don't have an account? <a href="{% url 'register' %}" style="font-weight: 600; color: var(--primary); text-decoration: none;">Sign Up Free</a>
-    </p>
+  <p
+    style="text-align: center; font-size: 0.85rem; color: var(--text-secondary)"
+  >
+    Don't have an account?
+    <a
+      href="{% url 'register' %}"
+      style="font-weight: 600; color: var(--primary); text-decoration: none"
+      >Sign Up Free</a
+    >
+  </p>
 </form>
 
 <!-- Admin Portal -->
-<div style="margin-top: 1.5rem; padding-top: 1.2rem; border-top: 1px solid var(--border); text-align: center;">
-    <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.8rem;">System Administrator?</p>
-    <div style="display: flex; gap: 0.5rem;">
-        <button type="button" onclick="fillAdmin()" class="btn-secondary" style="flex: 1; font-size: 0.78rem; border-color: rgba(184,144,71,0.3); color: var(--secondary);">
-            <i data-lucide="key" style="width: 13px; height: 13px;"></i> Autofill Admin
-        </button>
-        <a href="{% url 'admin_dashboard' %}" class="btn-secondary" style="flex: 1; font-size: 0.78rem; border-color: rgba(10,92,54,0.3); color: var(--primary);">
-            <i data-lucide="shield" style="width: 13px; height: 13px;"></i> Admin Portal
-        </a>
-    </div>
+<div
+  style="
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  "
+>
+  <p
+    style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.8rem"
+  >
+    System Administrator?
+  </p>
+  <div style="display: flex; gap: 0.5rem">
+    <a
+      href="{% url 'admin_dashboard' %}"
+      class="btn-secondary"
+      style="
+        width: 100%;
+        font-size: 0.78rem;
+        border-color: rgba(10, 92, 54, 0.3);
+        color: var(--primary);
+      "
+    >
+      <i data-lucide="shield" style="width: 13px; height: 13px"></i> Admin
+      Portal
+    </a>
+  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    function fillAdmin() {
-        document.getElementById('email').value = 'admin@123gmail.com';
-        document.getElementById('password').value = 'admin@123';
-    }
-</script>
 {% endblock %}

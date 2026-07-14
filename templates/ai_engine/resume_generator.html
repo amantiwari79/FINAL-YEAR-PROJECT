@@ -1,0 +1,391 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Resume Generator - Resume Analysis AI+{% endblock %}
+{% block nav_resume_generator %}active{% endblock %}
+
+{% block extra_css %}
+.generator-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.form-help {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.resume-preview {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    color: #111827;
+}
+
+.resume-preview h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.resume-preview .headline {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+}
+
+.resume-preview .contact {
+    color: #4b5563;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    margin-bottom: 1.2rem;
+}
+
+.resume-section {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.resume-section h3 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--primary);
+    margin-bottom: 0.65rem;
+}
+
+.resume-section p,
+.resume-section li {
+    font-size: 0.86rem;
+    line-height: 1.6;
+}
+
+.resume-section ul {
+    padding-left: 1.1rem;
+}
+
+.item-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+}
+
+.item-meta {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-bottom: 0.35rem;
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.skill-pill {
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid rgba(10, 92, 54, 0.16);
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+@media (max-width: 900px) {
+    .generator-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #generated-resume,
+    #generated-resume * {
+        visibility: visible;
+    }
+    #generated-resume {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Resume Generator</h1>
+        <p>Enter your details and generate a clean, ATS-friendly resume draft.</p>
+    </div>
+    {% if generated_resume %}
+    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+        <button type="button" class="btn-secondary" id="copy-resume-btn">
+            <i data-lucide="copy"></i> Copy
+        </button>
+        <button type="button" class="btn-primary" id="download-pdf-btn">
+            <i data-lucide="download"></i> Save as PDF
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<div class="generator-layout">
+    <div class="card card-padded" style="padding: 2rem;">
+        <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1.5rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--border);">
+            <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--blue-light); display: flex; align-items: center; justify-content: center; color: var(--blue);">
+                <i data-lucide="file-plus-2" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1rem; font-weight: 700; color: var(--text-primary);">Candidate Details</h2>
+                <p style="font-size: 0.78rem; color: var(--text-muted);">Be specific for stronger bullets</p>
+            </div>
+        </div>
+
+        <form method="POST" style="display: flex; flex-direction: column; gap: 1rem;" id="resume-generator-form">
+            {% csrf_token %}
+
+            <div class="grid-2" style="gap: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" name="full_name" id="full_name" class="form-input" value="{{ form_data.full_name|default:'' }}" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="target_role">Target Role</label>
+                    <input type="text" name="target_role" id="target_role" class="form-input" value="{{ form_data.target_role|default:'' }}" placeholder="Frontend Developer" required>
+                </div>
+            </div>
+
+            <div class="grid-2" style="gap: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="email">Email</label>
+                    <input type="email" name="email" id="email" class="form-input" value="{{ form_data.email|default:'' }}">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="phone">Phone</label>
+                    <input type="text" name="phone" id="phone" class="form-input" value="{{ form_data.phone|default:'' }}">
+                </div>
+            </div>
+
+            <div class="grid-2" style="gap: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="location">Location</label>
+                    <input type="text" name="location" id="location" class="form-input" value="{{ form_data.location|default:'' }}" placeholder="Delhi, India">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="links">Links</label>
+                    <input type="text" name="links" id="links" class="form-input" value="{{ form_data.links|default:'' }}" placeholder="LinkedIn, GitHub, portfolio">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="skills">Skills</label>
+                <textarea name="skills" id="skills" rows="3" class="form-input" placeholder="Python, Django, React, SQL, Git" required>{{ form_data.skills|default:'' }}</textarea>
+                <p class="form-help">Separate skills with commas or new lines.</p>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="experience">Experience</label>
+                <textarea name="experience" id="experience" rows="5" class="form-input" placeholder="Company, role, dates, responsibilities">{{ form_data.experience|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="projects">Projects</label>
+                <textarea name="projects" id="projects" rows="4" class="form-input" placeholder="Project name, tech stack, what you built">{{ form_data.projects|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="achievements">Achievements</label>
+                <textarea name="achievements" id="achievements" rows="3" class="form-input" placeholder="Improved performance by 30%, built 5 modules, handled 100+ users">{{ form_data.achievements|default:'' }}</textarea>
+            </div>
+
+            <div class="grid-2" style="gap: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="education">Education</label>
+                    <textarea name="education" id="education" rows="3" class="form-input" placeholder="Degree, college, year">{{ form_data.education|default:'' }}</textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="certifications">Certifications</label>
+                    <textarea name="certifications" id="certifications" rows="3" class="form-input" placeholder="AWS, Google, Coursera">{{ form_data.certifications|default:'' }}</textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="justify-content: center; width: 100%;" id="submit-btn">
+                <i data-lucide="sparkles"></i> Generate Resume
+            </button>
+        </form>
+    </div>
+
+    <div>
+        {% if generated_resume %}
+        <div class="resume-preview" id="generated-resume">
+            <h2>{{ generated_resume.name }}</h2>
+            <div class="headline">{{ generated_resume.headline }}</div>
+            <div class="contact">{{ generated_resume.contact|join:' | ' }}</div>
+
+            <div class="resume-section">
+                <h3>Professional Summary</h3>
+                <p>{{ generated_resume.summary }}</p>
+            </div>
+
+            <div class="resume-section">
+                <h3>Skills</h3>
+                <div class="skills-list">
+                    {% for skill in generated_resume.skills %}
+                    <span class="skill-pill">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="resume-section">
+                <h3>Experience</h3>
+                {% for item in generated_resume.experience %}
+                <div style="margin-bottom: 1rem;">
+                    <div class="item-title">{{ item.title }}</div>
+                    <div class="item-meta">{{ item.company }}{% if item.dates %} | {{ item.dates }}{% endif %}</div>
+                    <ul>
+                        {% for bullet in item.bullets %}
+                        <li>{{ bullet }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="resume-section">
+                <h3>Projects</h3>
+                {% for project in generated_resume.projects %}
+                <div style="margin-bottom: 1rem;">
+                    <div class="item-title">{{ project.name }}</div>
+                    <p>{{ project.description }}</p>
+                    <ul>
+                        {% for bullet in project.bullets %}
+                        <li>{{ bullet }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="resume-section">
+                <h3>Education</h3>
+                <ul>
+                    {% for item in generated_resume.education %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% if generated_resume.certifications %}
+            <div class="resume-section">
+                <h3>Certifications</h3>
+                <ul>
+                    {% for item in generated_resume.certifications %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card card-padded" style="padding: 3rem 2rem; text-align: center;">
+            <div class="empty-icon" style="margin: 0 auto 1.2rem;">
+                <i data-lucide="file-text"></i>
+            </div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Your Resume Draft Will Appear Here</h3>
+            <p style="font-size: 0.86rem; color: var(--text-secondary); line-height: 1.6; max-width: 440px; margin: 0 auto;">
+                Add your role, skills, experience, projects, education, and achievements. The generator will turn them into a structured resume draft.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include html2pdf.js from CDN for browser-side PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('resume-generator-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const copyBtn = document.getElementById('copy-resume-btn');
+        const downloadPdfBtn = document.getElementById('download-pdf-btn');
+        const resume = document.getElementById('generated-resume');
+
+        if (form && submitBtn) {
+            form.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.75';
+                submitBtn.innerHTML = '<i data-lucide="loader" style="width: 15px; height: 15px; animation: button-spin 1s linear infinite;"></i> Generating...';
+                if (window.lucide) window.lucide.createIcons();
+            });
+        }
+
+        if (copyBtn && resume) {
+            copyBtn.addEventListener('click', async function() {
+                await navigator.clipboard.writeText(resume.innerText.trim());
+                copyBtn.innerHTML = '<i data-lucide="check"></i> Copied';
+                if (window.lucide) window.lucide.createIcons();
+                setTimeout(function() {
+                    copyBtn.innerHTML = '<i data-lucide="copy"></i> Copy';
+                    if (window.lucide) window.lucide.createIcons();
+                }, 1800);
+            });
+        }
+
+        if (downloadPdfBtn && resume) {
+            downloadPdfBtn.addEventListener('click', function() {
+                downloadPdfBtn.disabled = true;
+                downloadPdfBtn.style.opacity = '0.75';
+                const originalText = downloadPdfBtn.innerHTML;
+                downloadPdfBtn.innerHTML = '<i data-lucide="loader" style="width: 15px; height: 15px; animation: button-spin 1s linear infinite;"></i> Downloading...';
+                if (window.lucide) window.lucide.createIcons();
+
+                // Clone the resume preview element to edit styles without affecting UI
+                const element = resume.cloneNode(true);
+                element.style.border = 'none';
+                element.style.boxShadow = 'none';
+                element.style.borderRadius = '0';
+                element.style.padding = '0';
+                element.style.margin = '0';
+
+                // Configure html2pdf options
+                const opt = {
+                    margin:       [0.5, 0.75, 0.5, 0.75], // [top, left, bottom, right] in inches
+                    filename:     '{{ generated_resume.name }}_Resume.pdf'.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2.5, useCORS: true, letterRendering: true },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+
+                // Generate and download
+                html2pdf().set(opt).from(element).save().then(() => {
+                    downloadPdfBtn.disabled = false;
+                    downloadPdfBtn.style.opacity = '1';
+                    downloadPdfBtn.innerHTML = originalText;
+                    if (window.lucide) window.lucide.createIcons();
+                }).catch(err => {
+                    console.error('PDF Generation Error:', err);
+                    downloadPdfBtn.disabled = false;
+                    downloadPdfBtn.style.opacity = '1';
+                    downloadPdfBtn.innerHTML = originalText;
+                    if (window.lucide) window.lucide.createIcons();
+                    alert('Failed to generate PDF. Please try again.');
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
