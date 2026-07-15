@@ -545,7 +545,7 @@
 
                     <div class="control-item" style="border-bottom:none; padding-top:0.4rem;">
                         <div style="padding-top:0;">
-                            <div class="control-label">Gemini API Key</div>
+                            <div class="control-label">Gemini API Connection (Default)</div>
                             <div class="control-desc" style="font-family:monospace; font-size:0.75rem;">{{ masked_key }}</div>
                         </div>
                         <span class="badge {% if api_configured %}badge-green{% else %}badge-red{% endif %}" style="margin-left:auto; white-space:nowrap;">
@@ -562,13 +562,37 @@
                 <form action="{% url 'update_api_config' %}" method="POST" style="margin-top:0.5rem;">
                     {% csrf_token %}
                     <div class="api-key-form">
-                        <label for="api_key_direct">Update Gemini API Key</label>
-                        <input type="password" name="api_key" id="api_key_direct" placeholder="Enter new Gemini API key..." autocomplete="off" required>
+                        <label for="key_name">Choose API Key to Update</label>
+                        <select name="key_name" id="key_name" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.8rem; background: #fff; color: var(--text-primary); cursor: pointer; margin-bottom: 0.25rem;">
+                            <option value="GEMINI_API_KEY">Default Key (All Tools Fallback)</option>
+                            <option value="GEMINI_PARSER_API_KEY">Resume Parser Key</option>
+                            <option value="GEMINI_ATS_API_KEY">ATS Scanner Key</option>
+                            <option value="GEMINI_COACH_API_KEY">Career Coach Key</option>
+                            <option value="GEMINI_INTERVIEW_API_KEY">Mock Interview Prep Key</option>
+                            <option value="GEMINI_GENERATOR_API_KEY">Resume Generator Key</option>
+                        </select>
+
+                        <label for="api_key_direct">Enter New API Key</label>
+                        <input type="password" name="api_key" id="api_key_direct" placeholder="Enter API key..." autocomplete="off" required>
                         <button type="submit">
                             Save & Apply Key
                         </button>
                     </div>
                 </form>
+
+                <!-- Active API Keys Status List -->
+                <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <div class="control-label" style="margin-bottom: 0.6rem; font-size: 0.8rem; font-weight: 600; color: var(--text-primary);">AI Tools API Keys Status:</div>
+                    {% for item in api_keys_status %}
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; margin-bottom:0.4rem; padding:0.35rem 0.5rem; background:#f8fafc; border-radius:4px; border: 1px solid var(--border);">
+                        <span style="font-weight:600; color:var(--text-secondary);">{{ item.display_name }}:</span>
+                        <span style="font-family:monospace; color:var(--text-muted);">{{ item.masked_val }}</span>
+                        <span class="badge {% if item.status == 'Online' %}badge-green{% elif item.status == 'Invalid Key' %}badge-red{% else %}badge-neutral{% endif %}" style="padding: 1px 6px; font-size: 0.65rem; white-space:nowrap;">
+                            {{ item.status }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
 

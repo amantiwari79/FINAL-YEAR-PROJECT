@@ -6,15 +6,20 @@ from decouple import config
 from google import genai
 from google.genai import types
 
-def get_gemini_client():
+def get_gemini_client(specific_key_name=None):
     """
     Initializes and returns the official Google GenAI Gemini client.
-    Reads GEMINI_API_KEY from os.environ directly so admin panel updates
-    take effect immediately without a server restart.
-    Returns None if the key is not set or is a mock placeholder.
+    Reads tool-specific API key if provided, falling back to GEMINI_API_KEY.
     """
-    # os.environ checked first (live updates), then fall back to decouple/.env
-    api_key = os.environ.get('GEMINI_API_KEY') or config('GEMINI_API_KEY', default='mock-key')
+    api_key = None
+    if specific_key_name:
+        api_key = os.environ.get(specific_key_name) or config(specific_key_name, default=None)
+        if api_key and ('mock' in api_key.lower() or api_key == 'your-gemini-api-key-here' or api_key.strip() == ''):
+            api_key = None
+
+    if not api_key:
+        api_key = os.environ.get('GEMINI_API_KEY') or config('GEMINI_API_KEY', default='mock-key')
+
     if not api_key or 'mock' in api_key.lower() or api_key == 'your-gemini-api-key-here':
         return None
     try:
@@ -53,7 +58,7 @@ def parse_resume_with_ai(raw_text):
     Parses resume raw text into structured JSON.
     Falls back to regex-based heuristics if no Gemini API key is set or if the call fails.
     """
-    client = get_gemini_client()
+    client = get_gemini_client('GEMINI_PARSER_API_KEY')
     if client:
         try:
             prompt = f"""
@@ -145,7 +150,7 @@ def calculate_ats_score(resume_text, job_desc):
     Compares the resume text against the job description.
     Returns: (score_int, feedback_dict) with rich analytics data.
     """
-    client = get_gemini_client()
+    client = get_gemini_client('GEMINI_ATS_API_KEY')
     if client:
         try:
             prompt = f"""
@@ -301,7 +306,7 @@ def rewrite_bullet_points(bullets):
     """
     Rewrites plain bullet points to high-impact achievements.
     """
-    client = get_gemini_client()
+    client = get_gemini_client('GEMINI_REWRITER_API_KEY')
     if client:
         try:
             prompt = f"""
@@ -346,7 +351,7 @@ def generate_cover_letter(resume_text, job_title, company, job_desc):
     """
     Generates a personalized cover letter based on the candidate's CV and job criteria.
     """
-    client = get_gemini_client()
+    client = get_gemini_client('GEMINI_COVER_LETTER_API_KEY')
     if client:
         try:
             prompt = f"""
@@ -395,7 +400,7 @@ def generate_resume_from_details(details):
     Generates a polished resume draft from user-provided profile details.
     Falls back to a deterministic resume draft if the AI client is unavailable.
     """
-    client = get_gemini_client()
+    client = get_gemini_client('GEMINI_GENERATOR_API_KEY')
     if client:
         try:
             prompt = f"""
@@ -533,7 +538,7 @@ def career_coach_chat(chat_history, user_message):
     """
     Acts as an AI career advisor responding to questions in a conversation history.
     """
-    client = get_gemini_client()
+    client = get_gemini_client('GEMINI_COACH_API_KEY')
     if client:
         try:
             contents = []
@@ -560,7 +565,7 @@ def generate_interview_questions(resume_text, job_desc):
     """
     Generates tailored mock interview questions.
     """
-    client = get_gemini_client()
+    client = get_gemini_client('GEMINI_INTERVIEW_API_KEY')
     if client:
         try:
             prompt = f"""
@@ -623,7 +628,7 @@ def improve_grammar(text_blocks):
     Returns a list of dicts with 'original', 'corrected', 'changes' keys.
     Falls back to rule-based heuristics if API is unavailable.
     """
-    client = get_gemini_client()
+    client = get_gemini_client('GEMINI_GRAMMAR_API_KEY')
     if client:
         try:
             prompt = f"""

@@ -215,7 +215,11 @@ def resume_generator_view(request):
         ]
         form_data = {field: request.POST.get(field, '').strip() for field in fields}
 
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.META.get('HTTP_ACCEPT', '')
+
         if not form_data.get('full_name') or not form_data.get('target_role') or not form_data.get('skills'):
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'Please add your name, target role, and key skills.'}, status=400)
             messages.error(request, 'Please add your name, target role, and key skills.')
         else:
             t0 = time.time()
@@ -228,6 +232,8 @@ def resume_generator_view(request):
                 latency_ms=latency,
                 status='success'
             )
+            if is_ajax:
+                return JsonResponse({'status': 'success', 'resume': generated_resume})
             messages.success(request, 'Resume draft generated successfully!')
 
     return render(request, 'ai_engine/resume_generator.html', {

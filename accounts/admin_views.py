@@ -30,13 +30,42 @@ def admin_dashboard(request):
     total_ai_logs = AIActionLog.objects.count()
 
     # 2. API Configuration
-    gemini_key = config('GEMINI_API_KEY', default='')
-    client = get_gemini_client()
-    api_configured = client is not None
+    import os
+    keys_to_check = [
+        ('GEMINI_API_KEY', 'Default Key (Fallback)'),
+        ('GEMINI_PARSER_API_KEY', 'Resume Parser Key'),
+        ('GEMINI_ATS_API_KEY', 'ATS Scanner Key'),
+        ('GEMINI_COACH_API_KEY', 'Career Coach Key'),
+        ('GEMINI_INTERVIEW_API_KEY', 'Interview Prep Key'),
+        ('GEMINI_GENERATOR_API_KEY', 'Resume Generator Key'),
+    ]
+    
+    api_keys_status = []
+    default_client = get_gemini_client()
+    api_configured = default_client is not None
+    
+    gemini_key = os.environ.get('GEMINI_API_KEY') or config('GEMINI_API_KEY', default='')
     if gemini_key:
         masked_key = f"{gemini_key[:8]}...{gemini_key[-8:]}" if len(gemini_key) > 10 else "Configured (Invalid Format)"
     else:
         masked_key = "Not Configured"
+        
+    for key_name, display_name in keys_to_check:
+        key_val = os.environ.get(key_name) or config(key_name, default='')
+        if key_val:
+            client = get_gemini_client(key_name)
+            status = 'Online' if client is not None else 'Invalid Key'
+            masked_val = f"{key_val[:8]}...{key_val[-4:]}" if len(key_val) > 10 else "Invalid Format"
+        else:
+            status = 'Not Configured'
+            masked_val = 'Not Configured'
+            
+        api_keys_status.append({
+            'key_name': key_name,
+            'display_name': display_name,
+            'masked_val': masked_val,
+            'status': status
+        })
 
     # 3. System Control Flags (stored in cache as simple toggles)
     maintenance_mode = cache.get('admin_maintenance_mode', False)
@@ -70,6 +99,7 @@ def admin_dashboard(request):
         'total_ai_logs':     total_ai_logs,
         'api_configured':    api_configured,
         'masked_key':        masked_key,
+        'api_keys_status':   api_keys_status,
         'users_list':        users,
         'gemini_model':      'gemini-2.5-flash',
         'maintenance_mode':  maintenance_mode,
@@ -115,11 +145,23 @@ import os
 @user_passes_test(is_admin, login_url='login')
 def update_api_config(request):
     """
-    Updates the GEMINI_API_KEY inside the local .env file AND applies it
+    Updates a specific Gemini API key inside the local .env file AND applies it
     immediately to the running process via os.environ so no restart is needed.
     """
     if request.method == 'POST':
+        key_name = request.POST.get('key_name', 'GEMINI_API_KEY').strip()
         new_key = request.POST.get('api_key', '').strip()
+        
+        allowed_keys = [
+            'GEMINI_API_KEY', 'GEMINI_PARSER_API_KEY', 'GEMINI_ATS_API_KEY',
+            'GEMINI_COACH_API_KEY', 'GEMINI_INTERVIEW_API_KEY', 'GEMINI_GENERATOR_API_KEY',
+            'GEMINI_REWRITER_API_KEY', 'GEMINI_COVER_LETTER_API_KEY', 'GEMINI_GRAMMAR_API_KEY'
+        ]
+        
+        if key_name not in allowed_keys:
+            messages.error(request, "Invalid API Key type.")
+            return redirect('admin_dashboard')
+
         if not new_key:
             messages.error(request, "API Key cannot be empty.")
             return redirect('admin_dashboard')
@@ -133,35 +175,29 @@ def update_api_config(request):
             with open(env_path, 'r') as f:
                 lines = f.readlines()
 
-        # Replace or append GEMINI_API_KEY line
+        # Replace or append target key line
+        prefix = f"{key_name}="
         for i, line in enumerate(lines):
-            if line.strip().startswith("GEMINI_API_KEY="):
-                lines[i] = f"GEMINI_API_KEY={new_key}\n"
+            if line.strip().startswith(prefix):
+                lines[i] = f"{key_name}={new_key}\n"
                 updated = True
                 break
 
         if not updated:
             if lines and not lines[-1].endswith('\n'):
                 lines.append('\n')
-            lines.append(f"GEMINI_API_KEY={new_key}\n")
+            lines.append(f"{key_name}={new_key}\n")
 
         # Write back to .env file
         with open(env_path, 'w') as f:
             f.writelines(lines)
 
         # ✅ Apply to running process immediately (no server restart needed)
-        os.environ['GEMINI_API_KEY'] = new_key
-
-        # ✅ Reload the Gemini client in ai_engine.utils so new key is used right away
-        try:
-            import ai_engine.utils as ai_utils
-            ai_utils._gemini_client = None   # reset cached client
-        except Exception:
-            pass
+        os.environ[key_name] = new_key
 
         messages.success(
             request,
-            f"✅ Gemini API Key updated successfully! New key: {new_key[:8]}...{new_key[-4:]} is now active."
+            f"✅ {key_name} updated successfully! New key: {new_key[:8]}...{new_key[-4:]} is now active."
         )
 
     return redirect('admin_dashboard')

@@ -129,8 +129,7 @@
         <h1>Resume Generator</h1>
         <p>Enter your details and generate a clean, ATS-friendly resume draft.</p>
     </div>
-    {% if generated_resume %}
-    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+    <div style="display: {% if generated_resume %}flex{% else %}none{% endif %}; gap: 0.6rem; flex-wrap: wrap;" id="generator-actions">
         <button type="button" class="btn-secondary" id="copy-resume-btn">
             <i data-lucide="copy"></i> Copy
         </button>
@@ -138,7 +137,6 @@
             <i data-lucide="download"></i> Save as PDF
         </button>
     </div>
-    {% endif %}
 </div>
 
 <div class="generator-layout">
@@ -227,7 +225,7 @@
         </form>
     </div>
 
-    <div>
+    <div id="preview-container">
         {% if generated_resume %}
         <div class="resume-preview" id="generated-resume">
             <h2>{{ generated_resume.name }}</h2>
@@ -299,7 +297,7 @@
             {% endif %}
         </div>
         {% else %}
-        <div class="card card-padded" style="padding: 3rem 2rem; text-align: center;">
+        <div class="card card-padded" id="empty-preview" style="padding: 3rem 2rem; text-align: center;">
             <div class="empty-icon" style="margin: 0 auto 1.2rem;">
                 <i data-lucide="file-text"></i>
             </div>
@@ -322,19 +320,179 @@
         const submitBtn = document.getElementById('submit-btn');
         const copyBtn = document.getElementById('copy-resume-btn');
         const downloadPdfBtn = document.getElementById('download-pdf-btn');
-        const resume = document.getElementById('generated-resume');
+        const previewContainer = document.getElementById('preview-container');
+        const generatorActions = document.getElementById('generator-actions');
+
+        const renderResume = (resumeData) => {
+            let experienceHtml = '';
+            if (resumeData.experience && resumeData.experience.length > 0) {
+                resumeData.experience.forEach(item => {
+                    let bulletsHtml = '';
+                    if (item.bullets && item.bullets.length > 0) {
+                        item.bullets.forEach(bullet => {
+                            bulletsHtml += `<li>${bullet}</li>`;
+                        });
+                    }
+                    experienceHtml += `
+                        <div style="margin-bottom: 1rem;">
+                            <div class="item-title">${item.title}</div>
+                            <div class="item-meta">${item.company}${item.dates ? ' | ' + item.dates : ''}</div>
+                            <ul>${bulletsHtml}</ul>
+                        </div>
+                    `;
+                });
+            }
+
+            let projectsHtml = '';
+            if (resumeData.projects && resumeData.projects.length > 0) {
+                resumeData.projects.forEach(project => {
+                    let bulletsHtml = '';
+                    if (project.bullets && project.bullets.length > 0) {
+                        project.bullets.forEach(bullet => {
+                            bulletsHtml += `<li>${bullet}</li>`;
+                        });
+                    }
+                    projectsHtml += `
+                        <div style="margin-bottom: 1rem;">
+                            <div class="item-title">${project.name}</div>
+                            <p>${project.description}</p>
+                            <ul>${bulletsHtml}</ul>
+                        </div>
+                    `;
+                });
+            }
+
+            let educationHtml = '';
+            if (resumeData.education && resumeData.education.length > 0) {
+                resumeData.education.forEach(item => {
+                    educationHtml += `<li>${item}</li>`;
+                });
+            }
+
+            let certificationsHtml = '';
+            if (resumeData.certifications && resumeData.certifications.length > 0) {
+                let certBullets = '';
+                resumeData.certifications.forEach(item => {
+                    certBullets += `<li>${item}</li>`;
+                });
+                certificationsHtml = `
+                    <div class="resume-section">
+                        <h3>Certifications</h3>
+                        <ul>${certBullets}</ul>
+                    </div>
+                `;
+            }
+
+            let skillsHtml = '';
+            if (resumeData.skills && resumeData.skills.length > 0) {
+                resumeData.skills.forEach(skill => {
+                    skillsHtml += `<span class="skill-pill">${skill}</span>`;
+                });
+            }
+
+            const contactStr = resumeData.contact ? resumeData.contact.join(' | ') : '';
+
+            return `
+                <div class="resume-preview" id="generated-resume">
+                    <h2>${resumeData.name}</h2>
+                    <div class="headline">${resumeData.headline}</div>
+                    <div class="contact">${contactStr}</div>
+
+                    <div class="resume-section">
+                        <h3>Professional Summary</h3>
+                        <p>${resumeData.summary}</p>
+                    </div>
+
+                    <div class="resume-section">
+                        <h3>Skills</h3>
+                        <div class="skills-list">
+                            ${skillsHtml}
+                        </div>
+                    </div>
+
+                    <div class="resume-section">
+                        <h3>Experience</h3>
+                        ${experienceHtml}
+                    </div>
+
+                    <div class="resume-section">
+                        <h3>Projects</h3>
+                        ${projectsHtml}
+                    </div>
+
+                    <div class="resume-section">
+                        <h3>Education</h3>
+                        <ul>
+                            ${educationHtml}
+                        </ul>
+                    </div>
+
+                    ${certificationsHtml}
+                </div>
+            `;
+        };
 
         if (form && submitBtn) {
-            form.addEventListener('submit', function() {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                // Validate basic required fields on client side
+                const fullName = document.getElementById('full_name').value.trim();
+                const targetRole = document.getElementById('target_role').value.trim();
+                const skills = document.getElementById('skills').value.trim();
+
+                if (!fullName || !targetRole || !skills) {
+                    alert('Please add your name, target role, and key skills.');
+                    return;
+                }
+
                 submitBtn.disabled = true;
                 submitBtn.style.opacity = '0.75';
+                const originalSubmitHtml = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<i data-lucide="loader" style="width: 15px; height: 15px; animation: button-spin 1s linear infinite;"></i> Generating...';
                 if (window.lucide) window.lucide.createIcons();
+
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.status === 'success') {
+                        // Render resume output
+                        previewContainer.innerHTML = renderResume(data.resume);
+                        // Show copy and download buttons
+                        if (generatorActions) {
+                            generatorActions.style.display = 'flex';
+                        }
+                        if (window.lucide) window.lucide.createIcons();
+                    } else {
+                        alert(data.message || 'An error occurred while generating the resume.');
+                    }
+                } catch (err) {
+                    console.error('Fetch Error:', err);
+                    alert('Failed to connect to the server. Please try again.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.innerHTML = originalSubmitHtml;
+                    if (window.lucide) window.lucide.createIcons();
+                }
             });
         }
 
-        if (copyBtn && resume) {
+        if (copyBtn) {
             copyBtn.addEventListener('click', async function() {
+                const resume = document.getElementById('generated-resume');
+                if (!resume) return;
                 await navigator.clipboard.writeText(resume.innerText.trim());
                 copyBtn.innerHTML = '<i data-lucide="check"></i> Copied';
                 if (window.lucide) window.lucide.createIcons();
@@ -345,8 +503,11 @@
             });
         }
 
-        if (downloadPdfBtn && resume) {
+        if (downloadPdfBtn) {
             downloadPdfBtn.addEventListener('click', function() {
+                const resume = document.getElementById('generated-resume');
+                if (!resume) return;
+
                 downloadPdfBtn.disabled = true;
                 downloadPdfBtn.style.opacity = '0.75';
                 const originalText = downloadPdfBtn.innerHTML;
@@ -361,10 +522,13 @@
                 element.style.padding = '0';
                 element.style.margin = '0';
 
+                const resumeName = resume.querySelector('h2') ? resume.querySelector('h2').innerText.trim() : 'My';
+                const filename = `${resumeName}_Resume.pdf`.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
+
                 // Configure html2pdf options
                 const opt = {
                     margin:       [0.5, 0.75, 0.5, 0.75], // [top, left, bottom, right] in inches
-                    filename:     '{{ generated_resume.name }}_Resume.pdf'.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf',
+                    filename:     filename,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2.5, useCORS: true, letterRendering: true },
                     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
