@@ -656,6 +656,16 @@
                 {% endfor %}
             {% endif %}
 
+            {% if maintenance_mode %}
+                <div class="alert alert-error" style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.2); color: var(--danger); padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.5rem; text-align: left;">
+                    <i data-lucide="alert-triangle" style="width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; color: var(--danger);"></i>
+                    <div>
+                        <strong style="color: var(--danger);">Website Under Maintenance</strong><br>
+                        Regular user login and registration are currently disabled. Only administrators may log in.
+                    </div>
+                </div>
+            {% endif %}
+
             {% block content %}{% endblock %}
         </div>
     </div>

@@ -20,6 +20,11 @@ def register_user(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
 
+    from django.core.cache import cache
+    if cache.get('admin_maintenance_mode', False):
+        messages.error(request, 'Website is under maintenance. Registration is currently disabled.')
+        return redirect('login')
+
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -53,12 +58,19 @@ def login_user(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         
+        # Check if maintenance mode is active
+        from django.core.cache import cache
+        is_maintenance = cache.get('admin_maintenance_mode', False)
+        
         user = authenticate(request, email=email, password=password)
         if user is not None:
-            login(request, user)
-            messages.success(request, _('Successfully logged in!'))
-            next_url = request.GET.get('next', 'dashboard')
-            return redirect(next_url)
+            if is_maintenance and not (user.is_staff or user.is_superuser):
+                messages.error(request, 'Website under maintenance. Regular user login is currently disabled.')
+            else:
+                login(request, user)
+                messages.success(request, _('Successfully logged in!'))
+                next_url = request.GET.get('next', 'dashboard')
+                return redirect(next_url)
         else:
             messages.error(request, _('Invalid email or password.'))
             
