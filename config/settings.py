@@ -144,3 +144,7 @@ LOGOUT_REDIRECT_URL = 'landing'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Security settings
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
