@@ -8,7 +8,23 @@
     <meta name="description" content="{% block meta_description %}Build ATS-optimized resumes, parse CVs, get matching job scores, and use AI tools to supercharge your career.{% endblock %}">
     
     <!-- CSS Stylesheet -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.0.2">
+    <style>
+        html {
+            height: 100%;
+        }
+        body {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 100% !important;
+        }
+        main {
+            flex: 1 0 auto !important;
+        }
+        .main-footer {
+            margin-top: auto !important;
+        }
+    </style>
     
     <!-- Lucide Icons for premium feel -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -19,6 +35,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+    {% include 'background_animation.html' %}
 
     <!-- Header / Navigation -->
     <header>
@@ -70,14 +87,63 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer style="background: rgba(11, 15, 25, 0.9); border-top: 1px solid var(--glass-border); padding: 3rem 0; margin-top: 5rem; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+    <!-- Premium Glassmorphic Footer -->
+    <footer class="main-footer">
         <div class="container">
-            <p style="margin-bottom: 1rem;">&copy; 2026 Resume Analysis AI+. All rights reserved.</p>
-            <div style="display: flex; justify-content: center; gap: 1.5rem;">
-                <a href="{% url 'privacy_policy' %}" class="nav-link">Privacy Policy</a>
-                <a href="{% url 'terms_conditions' %}" class="nav-link">Terms of Service</a>
-                <a href="{% url 'contact_support' %}" class="nav-link">Contact Support</a>
+            <div class="footer-grid">
+                <!-- Column 1: Brand -->
+                <div class="footer-brand">
+                    <a href="{% url 'landing' %}" class="footer-logo">
+                        <img src="{% static 'logo.png' %}" alt="Logo" style="height: 32px; border-radius: 4px;">
+                        Resume <span>Analysis</span> AI+
+                    </a>
+                    <p class="footer-desc">
+                        ATS-optimized resume scanner, AI-driven career advisor, and bullet optimizer powered by Gemini AI to supercharge your career path.
+                    </p>
+                    <div class="footer-socials">
+                        <a href="#" class="footer-social-btn" aria-label="Github"><i data-lucide="github" style="width: 16px; height: 16px;"></i></a>
+                        <a href="#" class="footer-social-btn" aria-label="Linkedin"><i data-lucide="linkedin" style="width: 16px; height: 16px;"></i></a>
+                        <a href="#" class="footer-social-btn" aria-label="Twitter"><i data-lucide="twitter" style="width: 16px; height: 16px;"></i></a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Navigation -->
+                <div class="footer-column">
+                    <h4 class="footer-heading">Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'landing' %}" class="footer-link"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i> Home</a></li>
+                        <li><a href="{% url 'features' %}" class="footer-link"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i> Features</a></li>
+                        <li><a href="{% url 'about' %}" class="footer-link"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i> About Us</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: AI Console -->
+                <div class="footer-column">
+                    <h4 class="footer-heading">AI Core Console</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'dashboard' %}" class="footer-link"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i> Dashboard Console</a></li>
+                        <li><a href="{% url 'job_matching' %}" class="footer-link"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i> ATS Score Check</a></li>
+                        <li><a href="{% url 'career_coach' %}" class="footer-link"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i> AI Career Coach</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 4: Help & Legal -->
+                <div class="footer-column">
+                    <h4 class="footer-heading">Legal & Help</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'contact_support' %}" class="footer-link"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i> Contact Support</a></li>
+                        <li><a href="{% url 'privacy_policy' %}" class="footer-link"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i> Privacy Policy</a></li>
+                        <li><a href="{% url 'terms_conditions' %}" class="footer-link"><i data-lucide="chevron-right" style="width: 12px; height: 12px;"></i> Terms & Conditions</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2026 Resume Analysis AI+. All rights reserved.</p>
+                <div class="footer-extra-links">
+                    <a href="#" onclick="event.preventDefault(); sessionStorage.removeItem('intro_played'); window.location.href='{% url 'landing' %}';" class="replay-intro-link"><i data-lucide="play-circle" style="width: 14.5px; height: 14.5px;"></i> Replay Intro</a>
+                </div>
             </div>
         </div>
     </footer>

@@ -1,0 +1,309 @@
+<style>
+  /* Landing Shifting Animated Background Styles */
+  body {
+    background-color: transparent !important;
+  }
+
+  .landing-bg-wrapper {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    background: linear-gradient(
+      -45deg,
+      #FAF8F5 0%,
+      #dcfce7 35%,
+      #F5F2EB 70%,
+      #fef3c7 100%
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    pointer-events: none;
+  }
+
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .grid-overlay-landing {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(
+        to right,
+        rgba(10, 92, 54, 0.03) 1.5px,
+        transparent 1.5px
+      ),
+      linear-gradient(
+        to bottom,
+        rgba(10, 92, 54, 0.03) 1.5px,
+        transparent 1.5px
+      );
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 1;
+    animation: gridPan-landing 25s linear infinite;
+  }
+
+  @keyframes gridPan-landing {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 40px 40px;
+    }
+  }
+
+  /* Moving light trails */
+  .light-trail-landing {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  @keyframes trail-h-landing {
+    0% {
+      left: -250px;
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    90% {
+      opacity: 0.8;
+    }
+    100% {
+      left: 100%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes trail-v-landing {
+    0% {
+      top: -250px;
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    90% {
+      opacity: 0.8;
+    }
+    100% {
+      top: 100%;
+      opacity: 0;
+    }
+  }
+
+  .trail-h-1-landing {
+    top: 20%;
+    height: 1.5px;
+    width: 200px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(10, 92, 54, 0.35),
+      transparent
+    );
+    animation: trail-h-landing 9s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+    animation-delay: 0s;
+  }
+
+  .trail-h-2-landing {
+    top: 55%;
+    height: 1.5px;
+    width: 240px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(184, 144, 71, 0.35),
+      transparent
+    );
+    animation: trail-h-landing 13s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+    animation-delay: 2.5s;
+  }
+
+  .trail-h-3-landing {
+    top: 85%;
+    height: 1.5px;
+    width: 180px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(184, 144, 71, 0.25),
+      transparent
+    );
+    animation: trail-h-landing 11s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+    animation-delay: 4.5s;
+  }
+
+  .trail-v-1-landing {
+    left: 15%;
+    width: 1.5px;
+    height: 200px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(10, 92, 54, 0.35),
+      transparent
+    );
+    animation: trail-v-landing 10s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+    animation-delay: 1.5s;
+  }
+
+  .trail-v-2-landing {
+    left: 70%;
+    width: 1.5px;
+    height: 220px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(184, 144, 71, 0.35),
+      transparent
+    );
+    animation: trail-v-landing 15s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+    animation-delay: 3.5s;
+  }
+
+  /* Ambient Blobs */
+  .landing-bg-blob {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(85px);
+    z-index: 1;
+    opacity: 0.8;
+  }
+
+  @keyframes float-blob-1-landing {
+    0%,
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    50% {
+      transform: translate(50px, -40px) scale(1.15);
+    }
+  }
+
+  @keyframes float-blob-2-landing {
+    0%,
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    50% {
+      transform: translate(-40px, 50px) scale(1.1);
+    }
+  }
+
+  @keyframes float-blob-3-landing {
+    0%,
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    50% {
+      transform: translate(40px, 40px) scale(0.9);
+    }
+  }
+
+  .landing-blob-1 {
+    top: 10%;
+    left: 5%;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(
+      circle,
+      rgba(10, 92, 54, 0.05) 0%,
+      transparent 70%
+    );
+    animation: float-blob-1-landing 18s ease-in-out infinite;
+  }
+
+  .landing-blob-2 {
+    bottom: 15%;
+    right: 5%;
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(
+      circle,
+      rgba(184, 144, 71, 0.06) 0%,
+      transparent 70%
+    );
+    animation: float-blob-2-landing 22s ease-in-out infinite;
+  }
+
+  .landing-blob-3 {
+    top: 50%;
+    left: 45%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(
+      circle,
+      rgba(184, 144, 71, 0.04) 0%,
+      transparent 70%
+    );
+    animation: float-blob-3-landing 16s ease-in-out infinite;
+  }
+
+  .landing-interactive-glow-blob {
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(
+      circle,
+      rgba(16, 185, 129, 0.06) 0%,
+      transparent 70%
+    );
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(75px);
+    z-index: 1;
+    transform: translate(-50%, -50%);
+    will-change: transform, left, top;
+    /* Start outside viewport */
+    left: -500px;
+    top: -500px;
+  }
+</style>
+
+<!-- Interactive Shifting Background -->
+<div class="landing-bg-wrapper">
+  <div class="grid-overlay-landing"></div>
+
+  <!-- Moving Light Trails -->
+  <div class="light-trail-landing trail-h-1-landing"></div>
+  <div class="light-trail-landing trail-h-2-landing"></div>
+  <div class="light-trail-landing trail-h-3-landing"></div>
+  <div class="light-trail-landing trail-v-1-landing"></div>
+  <div class="light-trail-landing trail-v-2-landing"></div>
+
+  <!-- Ambient Animated Blobs -->
+  <div class="landing-bg-blob landing-blob-1"></div>
+  <div class="landing-bg-blob landing-blob-2"></div>
+  <div class="landing-bg-blob landing-blob-3"></div>
+  <div
+    class="landing-bg-blob landing-interactive-glow-blob"
+    id="landing-interactive-glow"
+  ></div>
+</div>
+
+<script>
+  // Interactive Background Cursor Tracker
+  document.addEventListener("DOMContentLoaded", () => {
+    const glow = document.getElementById("landing-interactive-glow");
+    if (glow) {
+      window.addEventListener("mousemove", (e) => {
+        // Position fixed coordinates directly match clientX/clientY
+        glow.style.left = `${e.clientX}px`;
+        glow.style.top = `${e.clientY}px`;
+      });
+    }
+  });
+</script>

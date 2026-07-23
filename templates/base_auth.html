@@ -1,628 +1,770 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Resume Analysis AI+{% endblock %}</title>
-    <meta name="description" content="AI-powered resume analysis, ATS optimization, and career tools.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta
+      name="description"
+      content="AI-powered resume analysis, ATS optimization, and career tools."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
-        :root {
-            --primary: #0A5C36;
-            --primary-light: rgba(10, 92, 54, 0.08);
-            --secondary: #B89047;
-            --bg: #F5F4F1;
-            --surface: #FFFFFF;
-            --sidebar-bg: #0f1117;
-            --border: #e8e8f0;
-            --text-primary: #1a1a2e;
-            --text-secondary: #6b6b80;
-            --text-muted: #9a9aaa;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --radius: 10px;
-            --radius-sm: 6px;
-            --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
-        }
+      :root {
+          --primary: #0A5C36;
+          --primary-light: rgba(10, 92, 54, 0.08);
+          --secondary: #B89047;
+          --bg: #F5F4F1;
+          --surface: #FFFFFF;
+          --sidebar-bg: #0f1117;
+          --border: #e8e8f0;
+          --text-primary: #1a1a2e;
+          --text-secondary: #6b6b80;
+          --text-muted: #9a9aaa;
+          --success: #16a34a;
+          --danger: #dc2626;
+          --radius: 10px;
+          --radius-sm: 6px;
+          --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+      }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+      body {
+          font-family: 'Inter', sans-serif;
+          background: var(--bg);
+          color: var(--text-primary);
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+      }
 
-        /* Auth Split Layout */
-        .auth-layout {
-            display: flex;
-            min-height: 100vh;
-        }
+      /* Auth Split Layout */
+      .auth-layout {
+          display: flex;
+          min-height: 100vh;
+      }
 
-        /* Left Brand Panel */
-        .auth-brand {
-            width: 420px;
-            min-width: 420px;
-            background: var(--sidebar-bg);
-            display: flex;
-            flex-direction: column;
-            padding: 3rem;
-            position: relative;
-            overflow: hidden;
-        }
+      /* Left Brand Panel */
+      .auth-brand {
+          width: 420px;
+          min-width: 420px;
+          background: var(--sidebar-bg);
+          display: flex;
+          flex-direction: column;
+          padding: 3rem;
+          position: relative;
+          overflow: hidden;
+      }
 
-        /* Shifting Aurora Background */
-        .auth-brand {
-            width: 420px;
-            min-width: 420px;
-            background: linear-gradient(135deg, #090a0f 0%, #0f1117 40%, #061e11 100%);
-            background-size: 200% 200%;
-            animation: gradientShift 15s ease infinite;
-            display: flex;
-            flex-direction: column;
-            padding: 2rem 2.2rem;
-            position: relative;
-            overflow: hidden;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
+      /* Shifting Aurora Background */
+      .auth-brand {
+          width: 420px;
+          min-width: 420px;
+          background: linear-gradient(135deg, #090a0f 0%, #0f1117 40%, #061e11 100%);
+          background-size: 200% 200%;
+          animation: gradientShift 15s ease infinite;
+          display: flex;
+          flex-direction: column;
+          padding: 2rem 2.2rem;
+          position: relative;
+          overflow: hidden;
+          border-right: 1px solid rgba(255, 255, 255, 0.05);
+      }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+      @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+      }
 
-        /* Animations */
-        @keyframes spin-and-float {
-            0% { transform: translateY(0px) rotate(0deg) scale(1); }
-            50% { transform: translateY(-8px) rotate(12deg) scale(1.1); filter: drop-shadow(0 0 10px rgba(184,144,71,0.6)); }
-            100% { transform: translateY(0px) rotate(0deg) scale(1); }
-        }
+      /* Animations */
+      @keyframes spin-and-float {
+          0% { transform: translateY(0px) rotate(0deg) scale(1); }
+          50% { transform: translateY(-8px) rotate(12deg) scale(1.1); filter: drop-shadow(0 0 10px rgba(184,144,71,0.6)); }
+          100% { transform: translateY(0px) rotate(0deg) scale(1); }
+      }
 
-        @keyframes pulse-slow-1 {
-            0%, 100% { transform: scale(1) translate(0px, 0px); opacity: 0.6; }
-            50% { transform: scale(1.15) translate(25px, -15px); opacity: 0.85; }
-        }
+      @keyframes pulse-slow-1 {
+          0%, 100% { transform: scale(1) translate(0px, 0px); opacity: 0.6; }
+          50% { transform: scale(1.15) translate(25px, -15px); opacity: 0.85; }
+      }
 
-        @keyframes pulse-slow-2 {
-            0%, 100% { transform: scale(1) translate(0px, 0px); opacity: 0.5; }
-            50% { transform: scale(1.2) translate(-20px, 20px); opacity: 0.75; }
-        }
+      @keyframes pulse-slow-2 {
+          0%, 100% { transform: scale(1) translate(0px, 0px); opacity: 0.5; }
+          50% { transform: scale(1.2) translate(-20px, 20px); opacity: 0.75; }
+      }
 
-        @keyframes pulse-slow-3 {
-            0%, 100% { transform: scale(1) translate(0px, 0px); opacity: 0.4; }
-            50% { transform: scale(1.1) translate(15px, 15px); opacity: 0.65; }
-        }
+      @keyframes pulse-slow-3 {
+          0%, 100% { transform: scale(1) translate(0px, 0px); opacity: 0.4; }
+          50% { transform: scale(1.1) translate(15px, 15px); opacity: 0.65; }
+      }
 
-        @keyframes fadeInUpBounce {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
+      @keyframes fadeInUpBounce {
+          from {
+              opacity: 0;
+              transform: translateY(30px) scale(0.95);
+          }
+          to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+          }
+      }
 
-        @keyframes slideInLeftBounce {
-            from {
-                opacity: 0;
-                transform: translateX(-40px) scale(0.97);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
+      @keyframes slideInLeftBounce {
+          from {
+              opacity: 0;
+              transform: translateX(-40px) scale(0.97);
+          }
+          to {
+              opacity: 1;
+              transform: translateX(0) scale(1);
+          }
+      }
 
-        @keyframes textShimmer {
-            to { background-position: 200% center; }
-        }
+      @keyframes textShimmer {
+          to { background-position: 200% center; }
+      }
 
-        /* Shimmering Text Highlights */
-        .shimmer-gold {
-            background: linear-gradient(to right, #B89047 20%, #fcd34d 40%, #B89047 60%, #fcd34d 80%, #B89047 100%);
-            background-size: 200% auto;
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: textShimmer 4s linear infinite;
-            display: inline-block;
-            font-weight: 800;
-        }
+      /* Shimmering Text Highlights */
+      .shimmer-gold {
+          background: linear-gradient(to right, #B89047 20%, #fcd34d 40%, #B89047 60%, #fcd34d 80%, #B89047 100%);
+          background-size: 200% auto;
+          color: transparent;
+          -webkit-background-clip: text;
+          background-clip: text;
+          animation: textShimmer 4s linear infinite;
+          display: inline-block;
+          font-weight: 800;
+      }
 
-        .shimmer-green {
-            background: linear-gradient(to right, #6ee7b7 20%, #a7f3d0 40%, #6ee7b7 60%, #a7f3d0 80%, #6ee7b7 100%);
-            background-size: 200% auto;
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
-            animation: textShimmer 5s linear infinite;
-            display: inline-block;
-            font-weight: 800;
-        }
+      .shimmer-green {
+          background: linear-gradient(to right, #6ee7b7 20%, #a7f3d0 40%, #6ee7b7 60%, #a7f3d0 80%, #6ee7b7 100%);
+          background-size: 200% auto;
+          color: transparent;
+          -webkit-background-clip: text;
+          background-clip: text;
+          animation: textShimmer 5s linear infinite;
+          display: inline-block;
+          font-weight: 800;
+      }
 
-        .animate-logo-icon {
-            animation: spin-and-float 5s ease-in-out infinite;
-        }
+      .animate-logo-icon {
+          animation: spin-and-float 5s ease-in-out infinite;
+      }
 
-        .animate-pulse-slow-1 {
-            animation: pulse-slow-1 12s ease-in-out infinite;
-        }
-        
-        .animate-pulse-slow-2 {
-            animation: pulse-slow-2 16s ease-in-out infinite;
-        }
+      .animate-pulse-slow-1 {
+          animation: pulse-slow-1 12s ease-in-out infinite;
+      }
 
-        .animate-pulse-slow-3 {
-            animation: pulse-slow-3 10s ease-in-out infinite;
-        }
+      .animate-pulse-slow-2 {
+          animation: pulse-slow-2 16s ease-in-out infinite;
+      }
 
-        .animate-fade-in-up {
-            opacity: 0;
-            animation: fadeInUpBounce 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
-        }
+      .animate-pulse-slow-3 {
+          animation: pulse-slow-3 10s ease-in-out infinite;
+      }
 
-        .animate-slide-in-left {
-            opacity: 0;
-            animation: slideInLeftBounce 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
-        }
+      .animate-fade-in-up {
+          opacity: 0;
+          animation: fadeInUpBounce 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+      }
 
-        /* Ambient Glow Circles */
-        .brand-bg-circle {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-            filter: blur(50px);
-        }
-        .brand-bg-1 {
-            top: -50px; right: -50px;
-            width: 320px; height: 320px;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
-        }
-        .brand-bg-2 {
-            bottom: -50px; left: -50px;
-            width: 280px; height: 280px;
-            background: radial-gradient(circle, rgba(184, 144, 71, 0.2) 0%, transparent 70%);
-        }
-        .brand-bg-3 {
-            top: 35%; left: 20%;
-            width: 220px; height: 220px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-        }
+      .animate-slide-in-left {
+          opacity: 0;
+          animation: slideInLeftBounce 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+      }
 
-        .auth-brand .logo {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #fff;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            position: relative;
-            z-index: 1;
-            letter-spacing: -0.02em;
-        }
+      /* Ambient Glow Circles */
+      .brand-bg-circle {
+          position: absolute;
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 0;
+          filter: blur(50px);
+      }
+      .brand-bg-1 {
+          top: -50px; right: -50px;
+          width: 320px; height: 320px;
+          background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+      }
+      .brand-bg-2 {
+          bottom: -50px; left: -50px;
+          width: 280px; height: 280px;
+          background: radial-gradient(circle, rgba(184, 144, 71, 0.2) 0%, transparent 70%);
+      }
+      .brand-bg-3 {
+          top: 35%; left: 20%;
+          width: 220px; height: 220px;
+          background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+      }
 
-        .auth-brand-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            z-index: 1;
-        }
+      .auth-brand .logo {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #fff;
+          text-decoration: none;
+          display: flex;
+          align-items: center;
+          gap: 0.6rem;
+          position: relative;
+          z-index: 1;
+          letter-spacing: -0.02em;
+      }
 
-        .auth-brand-content h1 {
-            font-size: 1.85rem;
-            font-weight: 800;
-            color: #fff;
-            line-height: 1.15;
-            margin-bottom: 0.6rem;
-            letter-spacing: -0.03em;
-        }
+      .auth-brand-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          position: relative;
+          z-index: 1;
+      }
 
-        .auth-brand-content p {
-            font-size: 0.88rem;
-            color: rgba(255,255,255,0.45);
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
+      .auth-brand-content h1 {
+          font-size: 1.85rem;
+          font-weight: 800;
+          color: #fff;
+          line-height: 1.15;
+          margin-bottom: 0.6rem;
+          letter-spacing: -0.03em;
+      }
 
-        .auth-features {
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-        }
+      .auth-brand-content p {
+          font-size: 0.88rem;
+          color: rgba(255,255,255,0.45);
+          line-height: 1.6;
+          margin-bottom: 1rem;
+      }
 
-        /* Glassmorphic Feature Cards */
-        .auth-feature {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            color: rgba(255,255,255,0.65);
-            font-size: 0.82rem;
-            font-weight: 500;
-            background: rgba(255, 255, 255, 0.015);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 12px;
-            padding: 0.65rem 0.95rem;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-        
-        .auth-feature:hover {
-            transform: translateY(-3px) scale(1.015);
-            color: #fff;
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(110, 231, 183, 0.25);
-            box-shadow: 0 10px 25px -5px rgba(10, 92, 54, 0.25);
-        }
+      .auth-features {
+          display: flex;
+          flex-direction: column;
+          gap: 0.65rem;
+      }
 
-        .auth-feature .icon {
-            width: 32px; height: 32px;
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            transition: transform 0.3s ease;
-        }
+      /* Glassmorphic Feature Cards */
+      .auth-feature {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+          color: rgba(255,255,255,0.65);
+          font-size: 0.82rem;
+          font-weight: 500;
+          background: rgba(255, 255, 255, 0.015);
+          border: 1px solid rgba(255, 255, 255, 0.04);
+          border-radius: 12px;
+          padding: 0.65rem 0.95rem;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+      }
 
-        .auth-feature:hover .icon {
-            transform: scale(1.1) rotate(4deg);
-        }
+      .auth-feature:hover {
+          transform: translateY(-3px) scale(1.015);
+          color: #fff;
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(110, 231, 183, 0.25);
+          box-shadow: 0 10px 25px -5px rgba(10, 92, 54, 0.25);
+      }
 
-        .auth-brand-footer {
-            position: relative;
-            z-index: 1;
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.2);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 1.2rem;
-        }
+      .auth-feature .icon {
+          width: 32px; height: 32px;
+          border-radius: 8px;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          transition: transform 0.3s ease;
+      }
 
-        /* Right Form Panel Styles & Animations */
-        @keyframes gridPan {
-            from { background-position: 0 0; }
-            to { background-position: 32px 32px; }
-        }
+      .auth-feature:hover .icon {
+          transform: scale(1.1) rotate(4deg);
+      }
 
-        @keyframes float-blob-1 {
-            0%, 100% { transform: translate(0px, 0px) scale(1); }
-            50% { transform: translate(40px, -30px) scale(1.15); }
-        }
+      .auth-brand-footer {
+          position: relative;
+          z-index: 1;
+          font-size: 0.75rem;
+          color: rgba(255,255,255,0.2);
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+          padding-top: 1.2rem;
+      }
 
-        @keyframes float-blob-2 {
-            0%, 100% { transform: translate(0px, 0px) scale(1); }
-            50% { transform: translate(-30px, 40px) scale(1.1); }
-        }
+      /* Right Form Panel Styles & Animations */
+      @keyframes gridPan {
+          from { background-position: 0 0; }
+          to { background-position: 32px 32px; }
+      }
 
-        @keyframes float-blob-3 {
-            0%, 100% { transform: translate(0px, 0px) scale(1); }
-            50% { transform: translate(30px, 30px) scale(0.9); }
-        }
+      @keyframes float-blob-1 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(40px, -30px) scale(1.15); }
+      }
 
-        .auth-form-panel {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            position: relative;
-            background: linear-gradient(-45deg, #dcfce7 0%, #fef3c7 35%, #dbeafe 70%, #fae8ff 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            overflow: hidden;
-        }
+      @keyframes float-blob-2 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(-30px, 40px) scale(1.1); }
+      }
 
-        .grid-overlay {
-            position: absolute;
-            inset: 0;
-            background-image: 
-                linear-gradient(to right, rgba(10, 92, 54, 0.03) 1.5px, transparent 1.5px),
-                linear-gradient(to bottom, rgba(10, 92, 54, 0.03) 1.5px, transparent 1.5px);
-            background-size: 40px 40px;
-            pointer-events: none;
-            z-index: 1;
-            animation: gridPan 25s linear infinite;
-        }
+      @keyframes float-blob-3 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(30px, 30px) scale(0.9); }
+      }
 
-        /* Dribbble Hutte style moving light trails along grid lines */
-        @keyframes trail-h {
-            0% { left: -200px; opacity: 0; }
-            10% { opacity: 0.8; }
-            90% { opacity: 0.8; }
-            100% { left: 100%; opacity: 0; }
-        }
+      .auth-form-panel {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+          position: relative;
+          background: linear-gradient(-45deg, #FAF8F5 0%, #dcfce7 35%, #F5F2EB 70%, #fef3c7 100%);
+          background-size: 400% 400%;
+          animation: gradientShift 15s ease infinite;
+          overflow: hidden;
+      }
 
-        @keyframes trail-v {
-            0% { top: -200px; opacity: 0; }
-            10% { opacity: 0.8; }
-            90% { opacity: 0.8; }
-            100% { top: 100%; opacity: 0; }
-        }
+      .grid-overlay {
+          position: absolute;
+          inset: 0;
+          background-image:
+              linear-gradient(to right, rgba(10, 92, 54, 0.03) 1.5px, transparent 1.5px),
+              linear-gradient(to bottom, rgba(10, 92, 54, 0.03) 1.5px, transparent 1.5px);
+          background-size: 40px 40px;
+          pointer-events: none;
+          z-index: 1;
+          animation: gridPan 25s linear infinite;
+      }
 
-        .light-trail {
-            position: absolute;
-            pointer-events: none;
-            z-index: 1;
-        }
+      /* Dribbble Hutte style moving light trails along grid lines */
+      @keyframes trail-h {
+          0% { left: -200px; opacity: 0; }
+          10% { opacity: 0.8; }
+          90% { opacity: 0.8; }
+          100% { left: 100%; opacity: 0; }
+      }
 
-        .trail-h-1 {
-            top: 20%;
-            height: 1.5px;
-            width: 180px;
-            background: linear-gradient(to right, transparent, rgba(10, 92, 54, 0.4), transparent);
-            animation: trail-h 8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-            animation-delay: 0s;
-        }
+      @keyframes trail-v {
+          0% { top: -200px; opacity: 0; }
+          10% { opacity: 0.8; }
+          90% { opacity: 0.8; }
+          100% { top: 100%; opacity: 0; }
+      }
 
-        .trail-h-2 {
-            top: 50%;
-            height: 1.5px;
-            width: 220px;
-            background: linear-gradient(to right, transparent, rgba(184, 144, 71, 0.4), transparent);
-            animation: trail-h 12s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-            animation-delay: 2s;
-        }
+      .light-trail {
+          position: absolute;
+          pointer-events: none;
+          z-index: 1;
+      }
 
-        .trail-h-3 {
-            top: 80%;
-            height: 1.5px;
-            width: 160px;
-            background: linear-gradient(to right, transparent, rgba(37, 99, 235, 0.3), transparent);
-            animation: trail-h 10s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-            animation-delay: 4s;
-        }
+      .trail-h-1 {
+          top: 20%;
+          height: 1.5px;
+          width: 180px;
+          background: linear-gradient(to right, transparent, rgba(10, 92, 54, 0.4), transparent);
+          animation: trail-h 8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+          animation-delay: 0s;
+      }
 
-        .trail-v-1 {
-            left: 25%;
-            width: 1.5px;
-            height: 180px;
-            background: linear-gradient(to bottom, transparent, rgba(10, 92, 54, 0.4), transparent);
-            animation: trail-v 9s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-            animation-delay: 1s;
-        }
+      .trail-h-2 {
+          top: 50%;
+          height: 1.5px;
+          width: 220px;
+          background: linear-gradient(to right, transparent, rgba(184, 144, 71, 0.4), transparent);
+          animation: trail-h 12s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+          animation-delay: 2s;
+      }
 
-        .trail-v-2 {
-            left: 65%;
-            width: 1.5px;
-            height: 200px;
-            background: linear-gradient(to bottom, transparent, rgba(184, 144, 71, 0.4), transparent);
-            animation: trail-v 14s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-            animation-delay: 3s;
-        }
+      .trail-h-3 {
+          top: 80%;
+          height: 1.5px;
+          width: 160px;
+          background: linear-gradient(to right, transparent, rgba(184, 144, 71, 0.3), transparent);
+          animation: trail-h 10s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+          animation-delay: 4s;
+      }
 
-        .form-bg-blob {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            filter: blur(75px);
-            z-index: 1;
-            opacity: 0.85;
-        }
-        
-        .form-blob-1 {
-            top: 5%;
-            left: 10%;
-            width: 280px;
-            height: 280px;
-            background: radial-gradient(circle, rgba(10, 92, 54, 0.06) 0%, transparent 70%);
-            animation: float-blob-1 15s ease-in-out infinite;
-        }
-        
-        .form-blob-2 {
-            bottom: 5%;
-            right: 10%;
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, rgba(184, 144, 71, 0.07) 0%, transparent 70%);
-            animation: float-blob-2 18s ease-in-out infinite;
-        }
+      .trail-v-1 {
+          left: 25%;
+          width: 1.5px;
+          height: 180px;
+          background: linear-gradient(to bottom, transparent, rgba(10, 92, 54, 0.4), transparent);
+          animation: trail-v 9s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+          animation-delay: 1s;
+      }
 
-        .form-blob-3 {
-            top: 45%;
-            right: 25%;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
-            animation: float-blob-3 12s ease-in-out infinite;
-        }
+      .trail-v-2 {
+          left: 65%;
+          width: 1.5px;
+          height: 200px;
+          background: linear-gradient(to bottom, transparent, rgba(184, 144, 71, 0.4), transparent);
+          animation: trail-v 14s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+          animation-delay: 3s;
+      }
 
-        .interactive-glow-blob {
-            position: absolute;
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            filter: blur(65px);
-            z-index: 1;
-            transform: translate(-50%, -50%);
-            will-change: transform, left, top;
-            /* Start centered */
-            left: 50%;
-            top: 50%;
-        }
+      .form-bg-blob {
+          position: absolute;
+          border-radius: 50%;
+          pointer-events: none;
+          filter: blur(75px);
+          z-index: 1;
+          opacity: 0.85;
+      }
 
-        .auth-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: var(--shadow-lg);
-            position: relative;
-            z-index: 2;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .auth-card:hover {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
-        }
+      .form-blob-1 {
+          top: 5%;
+          left: 10%;
+          width: 280px;
+          height: 280px;
+          background: radial-gradient(circle, rgba(10, 92, 54, 0.06) 0%, transparent 70%);
+          animation: float-blob-1 15s ease-in-out infinite;
+      }
 
-        .auth-card-header {
-            margin-bottom: 2rem;
-        }
+      .form-blob-2 {
+          bottom: 5%;
+          right: 10%;
+          width: 320px;
+          height: 320px;
+          background: radial-gradient(circle, rgba(184, 144, 71, 0.07) 0%, transparent 70%);
+          animation: float-blob-2 18s ease-in-out infinite;
+      }
 
-        .auth-card-header h2 {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            margin-bottom: 0.3rem;
-        }
+      .form-blob-3 {
+          top: 45%;
+          right: 25%;
+          width: 200px;
+          height: 200px;
+          background: radial-gradient(circle, rgba(184, 144, 71, 0.05) 0%, transparent 70%);
+          animation: float-blob-3 12s ease-in-out infinite;
+      }
 
-        .auth-card-header p {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
+      .interactive-glow-blob {
+          position: absolute;
+          width: 320px;
+          height: 320px;
+          background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+          border-radius: 50%;
+          pointer-events: none;
+          filter: blur(65px);
+          z-index: 1;
+          transform: translate(-50%, -50%);
+          will-change: transform, left, top;
+          /* Start centered */
+          left: 50%;
+          top: 50%;
+      }
 
-        .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.2rem; }
-        .form-group label { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
+      .auth-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 2.5rem;
+          width: 100%;
+          max-width: 440px;
+          box-shadow: var(--shadow-lg);
+          position: relative;
+          z-index: 2;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
 
-        .form-input {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-size: 0.88rem;
-            font-family: 'Inter', sans-serif;
-            transition: border-color 0.15s, box-shadow 0.15s;
-            outline: none;
-        }
-        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(10,92,54,0.1); }
-        .form-input::placeholder { color: var(--text-muted); }
+      .auth-card:hover {
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+      }
 
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            padding: 0.7rem 1.4rem;
-            background: var(--primary);
-            color: #fff;
-            border-radius: var(--radius-sm);
-            font-size: 0.88rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.15s;
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-            width: 100%;
-        }
-        .btn-primary:hover { background: #074a2b; }
+      .auth-card-header {
+          margin-bottom: 2rem;
+      }
 
-        .btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            padding: 0.65rem 1.2rem;
-            background: transparent;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.15s;
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .btn-secondary:hover { background: var(--bg); color: var(--text-primary); }
+      .auth-card-header h2 {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: var(--text-primary);
+          margin-bottom: 0.3rem;
+      }
 
-        .alert {
-            padding: 0.7rem 1rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.82rem;
-            font-weight: 500;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .alert-error { background: rgba(220,38,38,0.08); color: var(--danger); border: 1px solid rgba(220,38,38,0.2); }
-        .alert-success { background: rgba(22,163,74,0.08); color: var(--success); border: 1px solid rgba(22,163,74,0.2); }
+      .auth-card-header p {
+          font-size: 0.85rem;
+          color: var(--text-secondary);
+      }
 
-        {% block extra_css %}{% endblock %}
+      .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.2rem; }
+      .form-group label { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
+
+      .form-input {
+          width: 100%;
+          padding: 0.65rem 0.9rem;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-sm);
+          color: var(--text-primary);
+          font-size: 0.88rem;
+          font-family: 'Inter', sans-serif;
+          transition: border-color 0.15s, box-shadow 0.15s;
+          outline: none;
+      }
+      .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(10,92,54,0.1); }
+      .form-input::placeholder { color: var(--text-muted); }
+
+      .btn-primary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.4rem;
+          padding: 0.7rem 1.4rem;
+          background: var(--primary);
+          color: #fff;
+          border-radius: var(--radius-sm);
+          font-size: 0.88rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition: background 0.15s;
+          border: none;
+          cursor: pointer;
+          font-family: inherit;
+          width: 100%;
+      }
+      .btn-primary:hover { background: #074a2b; }
+
+      .btn-secondary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.4rem;
+          padding: 0.65rem 1.2rem;
+          background: transparent;
+          color: var(--text-secondary);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-sm);
+          font-size: 0.85rem;
+          font-weight: 500;
+          text-decoration: none;
+          transition: all 0.15s;
+          cursor: pointer;
+          font-family: inherit;
+      }
+      .btn-secondary:hover { background: var(--bg); color: var(--text-primary); }
+
+      .alert {
+          padding: 0.7rem 1rem;
+          border-radius: var(--radius-sm);
+          font-size: 0.82rem;
+          font-weight: 500;
+          margin-bottom: 1rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+      }
+      .alert-error { background: rgba(220,38,38,0.08); color: var(--danger); border: 1px solid rgba(220,38,38,0.2); }
+      .alert-success { background: rgba(22,163,74,0.08); color: var(--success); border: 1px solid rgba(22,163,74,0.2); }
+
+      {% block extra_css %}{% endblock %}
     </style>
-</head>
-<body>
-<div class="auth-layout">
-
-    <!-- Brand Panel -->
-    <div class="auth-brand">
+  </head>
+  <body>
+    <div class="auth-layout">
+      <!-- Brand Panel -->
+      <div class="auth-brand">
         <!-- Animated Background Circles -->
         <div class="brand-bg-circle brand-bg-1 animate-pulse-slow-1"></div>
         <div class="brand-bg-circle brand-bg-2 animate-pulse-slow-2"></div>
         <div class="brand-bg-circle brand-bg-3 animate-pulse-slow-3"></div>
 
-        <a href="{% url 'landing' %}" class="logo animate-fade-in-up" style="animation-delay: 0.1s;">
-            <i data-lucide="sparkles" class="animate-logo-icon" style="width: 22px; height: 22px; color: var(--secondary); display: inline-block;"></i>
-            Resume <span class="shimmer-gold">Analysis AI+</span>
+        <a
+          href="{% url 'landing' %}"
+          class="logo animate-fade-in-up"
+          style="animation-delay: 0.1s"
+        >
+          <i
+            data-lucide="sparkles"
+            class="animate-logo-icon"
+            style="
+              width: 22px;
+              height: 22px;
+              color: var(--secondary);
+              display: inline-block;
+            "
+          ></i>
+          Resume <span class="shimmer-gold">Analysis AI+</span>
         </a>
 
         <div class="auth-brand-content">
-            <h1 class="animate-slide-in-left" style="animation-delay: 0.2s;">Supercharge<br>Your <span class="shimmer-gold">Career</span></h1>
-            <p class="animate-slide-in-left" style="animation-delay: 0.3s; margin-bottom: 1rem;">AI-powered resume analysis, ATS optimization, and personalized career coaching in one workspace.</p>
+          <h1 class="animate-slide-in-left" style="animation-delay: 0.2s">
+            Supercharge<br />Your <span class="shimmer-gold">Career</span>
+          </h1>
+          <p
+            class="animate-slide-in-left"
+            style="animation-delay: 0.3s; margin-bottom: 1rem"
+          >
+            AI-powered resume analysis, ATS optimization, and personalized
+            career coaching in one workspace.
+          </p>
 
-            <!-- Image Mockup Card -->
-            <div class="animate-slide-in-left" style="animation-delay: 0.35s; margin-bottom: 1.4rem;">
-                <div style="border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); box-shadow: 0 14px 35px rgba(0,0,0,0.35); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative;" onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='rgba(255,255,255,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255,255,255,0.08)';">
-                    <img src="{% static 'resume_analysis_mockup.png' %}" alt="AI Resume Analysis" style="width: 100%; height: 200px; display: block; object-fit: cover; object-position: top center;">
-                </div>
+          <!-- Image Mockup Card -->
+          <div
+            class="animate-slide-in-left"
+            style="animation-delay: 0.35s; margin-bottom: 1.4rem"
+          >
+            <div
+              style="
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                background: rgba(0, 0, 0, 0.2);
+                box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                position: relative;
+              "
+              onmouseover="
+                this.style.transform = 'translateY(-3px)';
+                this.style.borderColor = 'rgba(255,255,255,0.15)';
+              "
+              onmouseout="
+                this.style.transform = 'translateY(0)';
+                this.style.borderColor = 'rgba(255,255,255,0.08)';
+              "
+            >
+              <img
+                src="{% static 'resume_analysis_mockup.png' %}"
+                alt="AI Resume Analysis"
+                style="
+                  width: 100%;
+                  height: 200px;
+                  display: block;
+                  object-fit: cover;
+                  object-position: top center;
+                "
+              />
             </div>
+          </div>
 
-            <div class="auth-features">
-                <div class="auth-feature animate-slide-in-left" style="animation-delay: 0.4s;">
-                    <div class="icon" style="background: rgba(16, 185, 129, 0.12); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.20);">
-                        <i data-lucide="scan-line" style="width: 17px; height: 17px;"></i>
-                    </div>
-                    ATS Score Scanner & Keyword Analysis
-                </div>
-                <div class="auth-feature animate-slide-in-left" style="animation-delay: 0.5s;">
-                    <div class="icon" style="background: rgba(184, 144, 71, 0.12); color: var(--secondary); border: 1px solid rgba(184, 144, 71, 0.20);">
-                        <i data-lucide="wand-2" style="width: 17px; height: 17px;"></i>
-                    </div>
-                    AI Bullet Point Improver with Metrics
-                </div>
-                <div class="auth-feature animate-slide-in-left" style="animation-delay: 0.6s;">
-                    <div class="icon" style="background: rgba(37, 99, 235, 0.12); color: #93c5fd; border: 1px solid rgba(37, 99, 235, 0.20);">
-                        <i data-lucide="file-pen" style="width: 17px; height: 17px;"></i>
-                    </div>
-                    Cover Letter Generator
-                </div>
-                <div class="auth-feature animate-slide-in-left" style="animation-delay: 0.7s;">
-                    <div class="icon" style="background: rgba(147, 51, 234, 0.12); color: #d8b4fe; border: 1px solid rgba(147, 51, 234, 0.20);">
-                        <i data-lucide="message-circle" style="width: 17px; height: 17px;"></i>
-                    </div>
-                    AI Career Coach & Interview Prep
-                </div>
+          <div class="auth-features">
+            <div
+              class="auth-feature animate-slide-in-left"
+              style="animation-delay: 0.4s"
+            >
+              <div
+                class="icon"
+                style="
+                  background: rgba(16, 185, 129, 0.12);
+                  color: #6ee7b7;
+                  border: 1px solid rgba(16, 185, 129, 0.2);
+                "
+              >
+                <i
+                  data-lucide="scan-line"
+                  style="width: 17px; height: 17px"
+                ></i>
+              </div>
+              ATS Score Scanner & Keyword Analysis
             </div>
+            <div
+              class="auth-feature animate-slide-in-left"
+              style="animation-delay: 0.5s"
+            >
+              <div
+                class="icon"
+                style="
+                  background: rgba(184, 144, 71, 0.12);
+                  color: var(--secondary);
+                  border: 1px solid rgba(184, 144, 71, 0.2);
+                "
+              >
+                <i data-lucide="wand-2" style="width: 17px; height: 17px"></i>
+              </div>
+              AI Bullet Point Improver with Metrics
+            </div>
+            <div
+              class="auth-feature animate-slide-in-left"
+              style="animation-delay: 0.6s"
+            >
+              <div
+                class="icon"
+                style="
+                  background: rgba(10, 92, 54, 0.12);
+                  color: #8cd6b1;
+                  border: 1px solid rgba(10, 92, 54, 0.2);
+                "
+              >
+                <i data-lucide="file-pen" style="width: 17px; height: 17px"></i>
+              </div>
+              Resume Generator
+            </div>
+            <div
+              class="auth-feature animate-slide-in-left"
+              style="animation-delay: 0.7s"
+            >
+              <div
+                class="icon"
+                style="
+                  background: rgba(184, 144, 71, 0.12);
+                  color: #fcd34d;
+                  border: 1px solid rgba(184, 144, 71, 0.2);
+                "
+              >
+                <i
+                  data-lucide="message-circle"
+                  style="width: 17px; height: 17px"
+                ></i>
+              </div>
+              AI Career Coach & Interview Prep
+            </div>
+          </div>
         </div>
 
-        <div class="auth-brand-footer animate-fade-in-up" style="animation-delay: 0.8s;">
-            &copy; 2026 Resume Analysis AI+. All rights reserved.
+        <div
+          class="auth-brand-footer animate-fade-in-up"
+          style="animation-delay: 0.8s"
+        >
+          &copy; 2026 Resume Analysis AI+. All rights reserved.
         </div>
-    </div>
+      </div>
 
-    <!-- Form Panel -->
-    <div class="auth-form-panel">
+      <!-- Form Panel -->
+      <div class="auth-form-panel">
         <!-- Back to Home navigation button -->
-        <a href="{% url 'landing' %}" style="position: absolute; top: 2rem; right: 2.5rem; z-index: 10; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; text-decoration: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(255,255,255,0.4); color: var(--text-primary); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);" onmouseover="this.style.background='var(--primary)'; this.style.color='#fff'; this.style.borderColor='var(--primary)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.45)'; this.style.color='var(--text-primary)'; this.style.borderColor='rgba(255,255,255,0.4)'; this.style.transform='translateY(0)';" class="animate-fade-in-up">
-            <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Back to Home
+        <a
+          href="{% url 'landing' %}"
+          style="
+            position: absolute;
+            top: 2rem;
+            right: 2.5rem;
+            z-index: 10;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1.1rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          "
+          onmouseover="
+            this.style.background = 'var(--primary)';
+            this.style.color = '#fff';
+            this.style.borderColor = 'var(--primary)';
+            this.style.transform = 'translateY(-1px)';
+          "
+          onmouseout="
+            this.style.background = 'rgba(255, 255, 255, 0.45)';
+            this.style.color = 'var(--text-primary)';
+            this.style.borderColor = 'rgba(255,255,255,0.4)';
+            this.style.transform = 'translateY(0)';
+          "
+          class="animate-fade-in-up"
+        >
+          <i data-lucide="arrow-left" style="width: 14px; height: 14px"></i>
+          Back to Home
         </a>
 
         <!-- Subtle Moving Grid Overlay -->
@@ -639,61 +781,84 @@
         <div class="form-bg-blob form-blob-1"></div>
         <div class="form-bg-blob form-blob-2"></div>
         <div class="form-bg-blob form-blob-3"></div>
-        <div class="form-bg-blob interactive-glow-blob" id="interactive-glow"></div>
+        <div
+          class="form-bg-blob interactive-glow-blob"
+          id="interactive-glow"
+        ></div>
 
         <div class="auth-card">
-
-            {% if messages %}
-                {% for message in messages %}
-                <div class="alert {% if message.tags == 'error' or message.tags == 'danger' %}alert-error{% else %}alert-success{% endif %}">
-                    {% if message.tags == 'error' or message.tags == 'danger' %}
-                        <i data-lucide="alert-circle" style="width: 15px; height: 15px;"></i>
-                    {% else %}
-                        <i data-lucide="check-circle" style="width: 15px; height: 15px;"></i>
-                    {% endif %}
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
-
-            {% if maintenance_mode %}
-                <div class="alert alert-error" style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.2); color: var(--danger); padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.8rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.5rem; text-align: left;">
-                    <i data-lucide="alert-triangle" style="width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; color: var(--danger);"></i>
-                    <div>
-                        <strong style="color: var(--danger);">Website Under Maintenance</strong><br>
-                        Regular user login and registration are currently disabled. Only administrators may log in.
-                    </div>
-                </div>
-            {% endif %}
-
-            {% block content %}{% endblock %}
+          {% if messages %} {% for message in messages %}
+          <div
+            class="alert {% if message.tags == 'error' or message.tags == 'danger' %}alert-error{% else %}alert-success{% endif %}"
+          >
+            {% if message.tags == 'error' or message.tags == 'danger' %}
+            <i data-lucide="alert-circle" style="width: 15px; height: 15px"></i>
+            {% else %}
+            <i data-lucide="check-circle" style="width: 15px; height: 15px"></i>
+            {% endif %} {{ message }}
+          </div>
+          {% endfor %} {% endif %} {% if maintenance_mode %}
+          <div
+            class="alert alert-error"
+            style="
+              background: rgba(220, 38, 38, 0.1);
+              border: 1px solid rgba(220, 38, 38, 0.2);
+              color: var(--danger);
+              padding: 0.8rem;
+              border-radius: var(--radius-sm);
+              font-size: 0.8rem;
+              margin-bottom: 1rem;
+              display: flex;
+              align-items: flex-start;
+              gap: 0.5rem;
+              text-align: left;
+            "
+          >
+            <i
+              data-lucide="alert-triangle"
+              style="
+                width: 16px;
+                height: 16px;
+                margin-top: 2px;
+                flex-shrink: 0;
+                color: var(--danger);
+              "
+            ></i>
+            <div>
+              <strong style="color: var(--danger)"
+                >Website Under Maintenance</strong
+              ><br />
+              Regular user login and registration are currently disabled. Only
+              administrators may log in.
+            </div>
+          </div>
+          {% endif %} {% block content %}{% endblock %}
         </div>
+      </div>
     </div>
 
-</div>
+    <script>
+      lucide.createIcons();
 
-<script>
-    lucide.createIcons();
-
-    // JS Interactive Background Animations
-    document.addEventListener('DOMContentLoaded', () => {
-        const panel = document.querySelector('.auth-form-panel');
-        const glow = document.getElementById('interactive-glow');
-        const card = document.querySelector('.auth-card');
+      // JS Interactive Background Animations
+      document.addEventListener("DOMContentLoaded", () => {
+        const panel = document.querySelector(".auth-form-panel");
+        const glow = document.getElementById("interactive-glow");
+        const card = document.querySelector(".auth-card");
 
         if (panel && glow) {
-            panel.addEventListener('mousemove', (e) => {
-                const rect = panel.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
+          panel.addEventListener("mousemove", (e) => {
+            const rect = panel.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
 
-                // Move glow blob smoothly tracking cursor position
-                glow.style.left = `${x}px`;
-                glow.style.top = `${y}px`;
-            });
+            // Move glow blob smoothly tracking cursor position
+            glow.style.left = `${x}px`;
+            glow.style.top = `${y}px`;
+          });
         }
-    });
-</script>
-{% block extra_js %}{% endblock %}
-</body>
+      });
+    </script>
+    {% block extra_js %}{% endblock %}
+  </body>
 </html>

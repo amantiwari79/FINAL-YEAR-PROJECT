@@ -3,7 +3,6 @@ from unittest.mock import patch, MagicMock
 from ai_engine.utils import (
     calculate_ats_score,
     rewrite_bullet_points,
-    generate_cover_letter,
     career_coach_chat,
     generate_interview_questions,
     parse_resume_with_ai
@@ -43,11 +42,6 @@ class AIToolsHeuristicTestCase(TestCase):
         self.assertIn("improved", res[0])
         self.assertIn("reason", res[0])
 
-    def test_generate_cover_letter_fallback(self):
-        res = generate_cover_letter("My resume", "Software Engineer", "Google", "Job desc")
-        self.assertIn("Google", res)
-        self.assertIn("Software Engineer", res)
-
     def test_career_coach_chat_fallback(self):
         history = [{"role": "user", "content": "hello"}]
         res = career_coach_chat(history, "how to improve?")
@@ -56,7 +50,7 @@ class AIToolsHeuristicTestCase(TestCase):
     def test_generate_interview_questions_fallback(self):
         res = generate_interview_questions("My resume", "Job desc")
         self.assertIn("questions", res)
-        self.assertEqual(len(res["questions"]), 3)
+        self.assertEqual(len(res["questions"]), 10)
 
 
 class AIToolsAPITestCase(TestCase):
@@ -106,18 +100,6 @@ class AIToolsAPITestCase(TestCase):
         self.assertEqual(res[0]["improved"], "Architected clean modules.")
 
     @patch('ai_engine.utils.get_gemini_client')
-    def test_generate_cover_letter_api(self, mock_get_client):
-        mock_client = MagicMock()
-        mock_get_client.return_value = mock_client
-        
-        mock_response = MagicMock()
-        mock_response.text = "Mocked cover letter body."
-        mock_client.models.generate_content.return_value = mock_response
-        
-        res = generate_cover_letter("Resume text", "Engineer", "Apple", "Job desc")
-        self.assertEqual(res, "Mocked cover letter body.")
-
-    @patch('ai_engine.utils.get_gemini_client')
     def test_career_coach_chat_api(self, mock_get_client):
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
@@ -165,13 +147,10 @@ class AIToolsAPITestCase(TestCase):
         self.assertEqual(res_parse["name"], "Candidate text")
 
         score, feedback = calculate_ats_score("Candidate text", "Job desc")
-        self.assertEqual(score, 65)
+        self.assertEqual(score, 50)
 
         res_bullets = rewrite_bullet_points(["Wrote code."])
         self.assertEqual(res_bullets[0]["original"], "Wrote code.")
 
-        res_letter = generate_cover_letter("Candidate text", "Engineer", "Apple", "Job desc")
-        self.assertIn("Apple", res_letter)
-
         res_questions = generate_interview_questions("Candidate text", "Job desc")
-        self.assertEqual(len(res_questions["questions"]), 3)
+        self.assertEqual(len(res_questions["questions"]), 10)

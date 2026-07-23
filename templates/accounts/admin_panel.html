@@ -405,7 +405,6 @@
 
         .log-ats       { color: #9333ea; }
         .log-bullet    { color: #2563eb; }
-        .log-cover     { color: var(--secondary); }
         .log-coach     { color: var(--primary); }
         .log-interview { color: #0891b2; }
         .log-matching  { color: #ea580c; }
@@ -453,6 +452,7 @@
     </style>
 </head>
 <body>
+{% include 'background_animation.html' %}
 
 <!-- ── LEFT SIDEBAR ── -->
 <aside class="sidebar">
@@ -693,11 +693,10 @@
                         <td style="color:var(--text-secondary); font-size:0.76rem; white-space:nowrap;">
                             {{ log.created_at|date:"Y-m-d H:i:s" }}
                         </td>
-                        <td>
+                         <td>
                             <span class="log-action-label
                                 {% if log.action == 'ats_scan' %}log-ats
                                 {% elif log.action == 'bullet_improver' %}log-bullet
-                                {% elif log.action == 'cover_letter' %}log-cover
                                 {% elif log.action == 'career_coach' %}log-coach
                                 {% elif log.action == 'interview_prep' %}log-interview
                                 {% else %}log-matching{% endif %}">
@@ -719,7 +718,7 @@
             {% else %}
             <div class="empty-logs">
                 <i data-lucide="activity" style="width:32px;height:32px; display:block; margin:0 auto 0.8rem; opacity:0.3;"></i>
-                No AI operations logged yet. Run an ATS scan, cover letter, or career coach session to populate logs.
+                No AI operations logged yet. Run an ATS scan or career coach session to populate logs.
             </div>
             {% endif %}
         </div>

@@ -1,131 +1,627 @@
-{% extends 'base.html' %}
-
-{% block title %}Resume Analysis AI+ - ATS-Optimized AI Resume Builder & Coach{% endblock %}
-
-{% block extra_head %}
+{% extends 'base.html' %} {% block title %}Resume Analysis AI+ - ATS-Optimized
+AI Resume Builder & Coach{% endblock %} {% block extra_head %}
 <style>
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+  /* Base landing page animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
     }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-    @keyframes textShimmer {
-        to { background-position: 200% center; }
+  @keyframes textShimmer {
+    to {
+      background-position: 200% center;
     }
+  }
 
-    .animated-title {
-        opacity: 0;
-        animation: fadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        animation-delay: 0.15s;
-    }
+  .animated-title {
+    opacity: 0;
+    animation: fadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.15s;
+  }
 
-    .shimmer-gemini {
-        background: linear-gradient(to right, #1a73e8 0%, #9333ea 25%, #ec4899 50%, #60a5fa 75%, #1a73e8 100%);
-        background-size: 200% auto;
-        color: transparent;
-        -webkit-background-clip: text;
-        background-clip: text;
-        animation: textShimmer 3s linear infinite;
-        display: inline-block;
-        font-weight: 800;
+  .shimmer-gemini {
+    background: linear-gradient(
+      to right,
+      #1a73e8 0%,
+      #9333ea 25%,
+      #ec4899 50%,
+      #60a5fa 75%,
+      #1a73e8 100%
+    );
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: textShimmer 3s linear infinite;
+    display: inline-block;
+    font-weight: 800;
+  }
+
+  /* Cinematic Intro Styles */
+  html.intro-active,
+  html.intro-active body {
+    overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+  }
+
+  #intro-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #0f1511 0%, #06080b 100%);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition:
+      opacity 1.2s cubic-bezier(0.7, 0, 0.3, 1),
+      transform 1.2s cubic-bezier(0.7, 0, 0.3, 1);
+    font-family: "Outfit", sans-serif;
+    color: #faf8f5;
+  }
+
+  #intro-overlay.fade-out {
+    opacity: 0;
+    transform: scale(1.1);
+    pointer-events: none;
+  }
+
+  #intro-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.75;
+  }
+
+  #intro-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    max-width: 580px;
+    width: 90%;
+  }
+
+  #intro-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    transform: scale(0.9);
+    transition:
+      opacity 1s cubic-bezier(0.34, 1.56, 0.64, 1),
+      transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 100%;
+    pointer-events: none;
+  }
+
+  #intro-brand.reveal {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+  }
+
+  .intro-logo-container {
+    position: relative;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .intro-logo-glow {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(
+      circle,
+      rgba(10, 92, 54, 0.5) 0%,
+      rgba(184, 144, 71, 0.2) 50%,
+      transparent 70%
+    );
+    border-radius: 50%;
+    filter: blur(15px);
+    z-index: -1;
+    animation: pulseGlow 4s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulseGlow {
+    0% {
+      transform: scale(0.85);
+      opacity: 0.4;
     }
+    100% {
+      transform: scale(1.15);
+      opacity: 0.8;
+    }
+  }
+
+  .intro-logo-img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    border-radius: 18px;
+    box-shadow: 0 0 30px rgba(184, 144, 71, 0.25);
+    border: 2.5px solid #b89047;
+    background: #0f1511;
+    padding: 10px;
+  }
+
+  .intro-title {
+    font-size: 3.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #ffffff 40%, #b89047 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .intro-title span {
+    color: #0a5c36;
+    -webkit-text-fill-color: #0a5c36;
+    text-shadow: 0 0 15px rgba(10, 92, 54, 0.4);
+  }
+
+  .intro-subtitle {
+    font-size: 1.15rem;
+    color: #605c59;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    opacity: 0.95;
+    background: linear-gradient(to right, #b89047, #faf8f5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  #intro-skip-btn {
+    position: absolute;
+    bottom: 2.5rem;
+    right: 2.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.65rem 1.4rem;
+    border-radius: 30px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999999;
+  }
+
+
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="container">
-    
-    <!-- Hero Section -->
-    <section class="hero">
-        <span class="badge">Introducing Resume Analysis AI+ 2.0</span>
-        <h1 class="animated-title">Craft the Perfect Resume with the<br>
-            <span class="shimmer-gemini">Power of Gemini AI+</span></h1>
-        <p>Upload your current CV, parse key details instantly, get an ATS score check, and write high-impact cover letters tailormade for top recruiters.</p>
-        <div class="hero-actions">
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard <i data-lucide="layout-dashboard"></i></a>
-            {% else %}
-                <a href="{% url 'register' %}" class="btn btn-primary">Build Your Resume Free <i data-lucide="sparkles"></i></a>
-                <a href="{% url 'login' %}" class="btn btn-secondary">Login Account <i data-lucide="log-in"></i></a>
-            {% endif %}
-        </div>
-    </section>
-
-    <!-- Interactive Features Section -->
-    <section class="features-section">
-        <div class="section-header">
-            <h2>Supercharged AI Engine & Tools</h2>
-            <p>Every feature you need to secure more interviews, faster.</p>
-        </div>
-        
-        <div class="feature-grid">
-            <!-- Feature 1: Resume Upload & Preview -->
-            <div class="card feature-card">
-                <div class="feature-icon"><i data-lucide="file-text"></i></div>
-                <h3>Smart Resume Storage</h3>
-                <p>Upload PDF and DOCX files. View full rendering in-browser, track versions, and organize your work histories with ease.</p>
-            </div>
-            
-            <!-- Feature 2: ATS Scanner -->
-            <div class="card feature-card">
-                <div class="feature-icon"><i data-lucide="target"></i></div>
-                <h3>ATS Score Analysis</h3>
-                <p>Run immediate compliance scans against customized job descriptions. Identify missing keywords, formatting errors, and gaps.</p>
-            </div>
-            
-            <!-- Feature 3: AI Rewrite -->
-            <div class="card feature-card">
-                <div class="feature-icon"><i data-lucide="wand2"></i></div>
-                <h3>AI Resume Rewriter</h3>
-                <p>Draft professional resume summaries and improve bullet points using advanced models optimized for action-oriented keywords.</p>
-            </div>
-            
-            <!-- Feature 4: Cover Letter Creator -->
-            <div class="card feature-card">
-                <div class="feature-icon"><i data-lucide="mail"></i></div>
-                <h3>Tailored Cover Letters</h3>
-                <p>Instantly generate professional, persuasive cover letters matched to specific job descriptions and your experiences.</p>
-            </div>
-            
-            <!-- Feature 5: Career Coach -->
-            <div class="card feature-card">
-                <div class="feature-icon"><i data-lucide="message-square"></i></div>
-                <h3>AI Career Advisor</h3>
-                <p>Get personalized guidance, mock interview prep, and salary negotiation insights through our contextual chatbot interface.</p>
-            </div>
-            
-            <!-- Feature 6: Docker Ready -->
-            <div class="card feature-card">
-                <div class="feature-icon"><i data-lucide="container"></i></div>
-                <h3>Modern Architecture</h3>
-                <p>Built with robust Django architecture, configured for PostgreSQL, and fully Docker-ready for modern cloud deployments.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Stats showcase section (to give a high-end feel) -->
-    <section style="margin: 3rem 0; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 4rem 2rem; text-align: center;">
-        <div class="stats-grid" style="max-width: 900px; margin: 0 auto;">
-            <div>
-                <h3 style="font-size: 3rem; color: var(--primary); font-family: var(--font-heading); margin-bottom: 0.5rem;">92%</h3>
-                <p style="color: var(--text-secondary); font-size: 1rem;">ATS Compliance Pass Rate</p>
-            </div>
-            <div>
-                <h3 style="font-size: 3rem; color: var(--secondary); font-family: var(--font-heading); margin-bottom: 0.5rem;">3.5x</h3>
-                <p style="color: var(--text-secondary); font-size: 1rem;">More Recruiter Responses</p>
-            </div>
-            <div>
-                <h3 style="font-size: 3rem; color: var(--accent); font-family: var(--font-heading); margin-bottom: 0.5rem;">15 mins</h3>
-                <p style="color: var(--text-secondary); font-size: 1rem;">Average Resume Upgrade Time</p>
-            </div>
-        </div>
-    </section>
-
+<script>
+  /* Prevent flash of intro screen on subsequent visits */
+  if (sessionStorage.getItem("intro_played") === "true") {
+    document.write(
+      "<style>#intro-overlay { display: none !important; } html.intro-active, html.intro-active body { overflow: auto !important; height: auto !important; }</style>",
+    );
+  } else {
+    document.documentElement.classList.add("intro-active");
+  }
+</script>
+{% endblock %} {% block content %} {% load static %}
+<!-- Cinematic Intro Overlay -->
+<div id="intro-overlay">
+  <canvas id="intro-canvas"></canvas>
+  <div id="intro-content">
+    <!-- Brand Reveal (Centered) -->
+    <div id="intro-brand">
+      <div class="intro-logo-container">
+        <div class="intro-logo-glow"></div>
+        <img
+          src="{% static 'logo.png' %}"
+          alt="Resume Analysis AI+"
+          class="intro-logo-img"
+        />
+      </div>
+      <h1 class="intro-title">Resume <span>Analysis</span> AI+</h1>
+      <p class="intro-subtitle">Supercharged by Gemini AI</p>
+    </div>
+  </div>
+  <button id="intro-skip-btn">Skip Intro &rarr;</button>
 </div>
+
+
+
+<div class="container">
+  <!-- Hero Section -->
+  <section class="hero">
+    <span class="badge">Introducing Resume Analysis AI+ 2.0</span>
+    <h1 class="animated-title">
+      Craft the Perfect Resume with the<br />
+      <span class="shimmer-gemini">Power of Gemini AI+</span>
+    </h1>
+    <p>
+      Upload your current CV, parse key details instantly, get an ATS score
+      check, and optimize your career trajectory with targeted AI coach
+      feedback.
+    </p>
+    <div class="hero-actions">
+      {% if user.is_authenticated %}
+      <a href="{% url 'dashboard' %}" class="btn btn-primary"
+        >Go to Dashboard <i data-lucide="layout-dashboard"></i
+      ></a>
+      {% else %}
+      <a href="{% url 'register' %}" class="btn btn-primary"
+        >Build Your Resume Free <i data-lucide="sparkles"></i
+      ></a>
+      <a href="{% url 'login' %}" class="btn btn-secondary"
+        >Login Account <i data-lucide="log-in"></i
+      ></a>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Interactive Features Section -->
+  <section class="features-section">
+    <div class="section-header">
+      <h2>Supercharged AI Engine & Tools</h2>
+      <p>Every feature you need to secure more interviews, faster.</p>
+    </div>
+
+    <div class="feature-grid">
+      <!-- Feature 1: Resume Parser -->
+      <div class="card feature-card">
+        <div class="feature-icon"><i data-lucide="file-text"></i></div>
+        <h3>Python Resume Parser</h3>
+        <p>
+          Extracts structured data from PDF and DOCX documents instantly using
+          <code>pypdf</code> and <code>docx2txt</code> parsing libraries in the
+          Django backend.
+        </p>
+      </div>
+
+      <!-- Feature 2: ATS Scanner -->
+      <div class="card feature-card">
+        <div class="feature-icon"><i data-lucide="target"></i></div>
+        <h3>Gemini-Powered ATS Scorer</h3>
+        <p>
+          Calculates compliance scores (0-100%) against target job descriptions.
+          Uses <code>gemini-2.5-flash</code> to identify missing keywords and
+          formatting errors.
+        </p>
+      </div>
+
+      <!-- Feature 3: AI Rewrite -->
+      <div class="card feature-card">
+        <div class="feature-icon"><i data-lucide="wand2"></i></div>
+        <h3>AI Resume Bullet Optimizer</h3>
+        <p>
+          Upgrades achievements and rewrites weak summary items to emphasize
+          quantitative metrics and action verbs, driven by
+          <code>gemini-2.5-flash</code>.
+        </p>
+      </div>
+
+      <!-- Feature 5: Career Coach -->
+      <div class="card feature-card">
+        <div class="feature-icon"><i data-lucide="message-square"></i></div>
+        <h3>AI Career Coach Chatbot</h3>
+        <p>
+          A conversational RAG-based assistant built with
+          <code>gemini-2.5-flash</code> to provide personalized feedback,
+          skills-gap analysis, and salary advice.
+        </p>
+      </div>
+
+      <!-- Feature 6: Mock Interview Prep -->
+      <div class="card feature-card">
+        <div class="feature-icon"><i data-lucide="help-circle"></i></div>
+        <h3>AI Mock Interview Generator</h3>
+        <p>
+          Generates custom technical, behavioral, and role-specific interview
+          questionnaires based on your resume and targeted job using
+          <code>gemini-2.5-flash</code>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats showcase section (to give a high-end feel) -->
+  <section
+    style="
+      margin: 3rem 0;
+      background: linear-gradient(
+        135deg,
+        rgba(99, 102, 241, 0.05) 0%,
+        rgba(6, 182, 212, 0.05) 100%
+      );
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 4rem 2rem;
+      text-align: center;
+    "
+  >
+    <div class="stats-grid" style="max-width: 900px; margin: 0 auto">
+      <div>
+        <h3
+          style="
+            font-size: 3rem;
+            color: var(--primary);
+            font-family: var(--font-heading);
+            margin-bottom: 0.5rem;
+          "
+        >
+          92%
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 1rem">
+          ATS Compliance Pass Rate
+        </p>
+      </div>
+      <div>
+        <h3
+          style="
+            font-size: 3rem;
+            color: var(--secondary);
+            font-family: var(--font-heading);
+            margin-bottom: 0.5rem;
+          "
+        >
+          3.5x
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 1rem">
+          More Fastest Ai Responsde
+        </p>
+      </div>
+      <div>
+        <h3
+          style="
+            font-size: 3rem;
+            color: var(--accent);
+            font-family: var(--font-heading);
+            margin-bottom: 0.5rem;
+          "
+        >
+          15 mins
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 1rem">
+          Average Resume Upgrade Time
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  (function () {
+    // If the intro has already played, exit immediately.
+    if (sessionStorage.getItem("intro_played") === "true") {
+      const overlay = document.getElementById("intro-overlay");
+      if (overlay) overlay.remove();
+      document.documentElement.classList.remove("intro-active");
+      return;
+    }
+
+    const overlay = document.getElementById("intro-overlay");
+    const canvas = document.getElementById("intro-canvas");
+    const ctx = canvas.getContext("2d");
+    const brand = document.getElementById("intro-brand");
+    const skipBtn = document.getElementById("intro-skip-btn");
+
+    // Resize canvas
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener("resize", () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    // Particle system variables
+    const particles = [];
+    const particleCount = Math.min(60, Math.floor((width * height) / 18000));
+    let attractToCenter = false;
+    let explode = false;
+
+    // Brand Colors (Emerald Green and Gold matching design tokens)
+    const primaryColor = { r: 10, g: 92, b: 54 };
+    const secondaryColor = { r: 184, g: 144, b: 71 };
+
+    class Particle {
+      constructor() {
+        this.reset();
+        // Start scattered
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        // Slow initial movement
+        this.vx = (Math.random() - 0.5) * 1.2;
+        this.vy = (Math.random() - 0.5) * 1.2;
+        this.radius = Math.random() * 2.5 + 1.5;
+        this.color = Math.random() > 0.45 ? primaryColor : secondaryColor;
+        this.alpha = Math.random() * 0.5 + 0.3;
+      }
+
+      update() {
+        if (attractToCenter) {
+          // Pull towards center
+          let dx = width / 2 - this.x;
+          let dy = height / 2 - this.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 5) {
+            this.vx += (dx / dist) * 0.35;
+            this.vy += (dy / dist) * 0.35;
+          }
+
+          // Add speed limit
+          let speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+          let maxSpeed = 7;
+          if (speed > maxSpeed) {
+            this.vx = (this.vx / speed) * maxSpeed;
+            this.vy = (this.vy / speed) * maxSpeed;
+          }
+        } else if (explode) {
+          // Apply drag & velocity decay to particles after explosion
+          this.vx *= 0.96;
+          this.vy *= 0.96;
+          this.radius -= 0.015;
+          if (this.radius < 0.1) this.radius = 0.1;
+          this.alpha -= 0.006;
+          if (this.alpha < 0) this.alpha = 0;
+        } else {
+          // Normal bounce off walls
+          if (this.x < 0 || this.x > width) this.vx *= -1;
+          if (this.y < 0 || this.y > height) this.vy *= -1;
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${this.alpha})`;
+        ctx.fill();
+      }
+    }
+
+    // Initialize particles
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    // Animation loop
+    function animate() {
+      if (!overlay.parentNode) return; // Stop loop if element removed
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw connections
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
+        p1.update();
+        p1.draw();
+
+        // Connect nearby nodes
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          let maxDist = attractToCenter ? 150 : 110;
+          if (dist < maxDist) {
+            const lineAlpha = (1 - dist / maxDist) * 0.15;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+
+            // Blend colors for lines
+            const r = Math.floor((p1.color.r + p2.color.r) / 2);
+            const g = Math.floor((p1.color.g + p2.color.g) / 2);
+            const b = Math.floor((p1.color.b + p2.color.b) / 2);
+            ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${lineAlpha})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // Start particle physics loop
+    animate();
+
+    // Start transition to logo reveal after 1200ms of ambient particles
+    setTimeout(startLogoRevealSequence, 1200);
+
+    // Sequence Controls
+    function startLogoRevealSequence() {
+      // Step 1: Attract particles to center to build energy core
+      attractToCenter = true;
+
+      // Step 2: Trigger logo show and particle explosion after 1.2s
+      setTimeout(() => {
+        attractToCenter = false;
+        explode = true;
+
+        // Set explosion velocity once for all particles
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          let dx = p.x - width / 2;
+          let dy = p.y - height / 2;
+          let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          // High outward velocity
+          p.vx = (dx / dist) * (Math.random() * 12 + 6);
+          p.vy = (dy / dist) * (Math.random() * 12 + 6);
+          p.alpha = 1.0; // brighten up
+        }
+
+        // Pulse active logo reveal
+        brand.classList.add("reveal");
+
+        // Step 3: Final page transition after another 2.5s
+        setTimeout(finishIntroSequence, 2500);
+      }, 1200);
+    }
+
+    function finishIntroSequence() {
+      overlay.classList.add("fade-out");
+
+      // Let transition finish, then clean up
+      setTimeout(() => {
+        overlay.remove();
+        document.documentElement.classList.remove("intro-active");
+        sessionStorage.setItem("intro_played", "true");
+      }, 1200);
+    }
+
+    // Skip handler
+    function skipIntro() {
+      attractToCenter = false;
+      explode = false;
+      overlay.classList.add("fade-out");
+
+      setTimeout(() => {
+        overlay.remove();
+        document.documentElement.classList.remove("intro-active");
+        sessionStorage.setItem("intro_played", "true");
+      }, 1200);
+    }
+
+    skipBtn.addEventListener("click", skipIntro);
+
+    // Expose a public function to replay the intro (for the footer link)
+    window.replayIntroSequence = function () {
+      sessionStorage.removeItem("intro_played");
+      window.location.reload();
+    };
+  })();
+
+
+</script>
 {% endblock %}

@@ -11,7 +11,7 @@
 }
 
 .coach-sidebar {
-    width: 240px;
+    width: 250px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -22,6 +22,11 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    background: rgba(255, 255, 255, 0.45) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
 }
 
 #chat-log {
@@ -29,81 +34,90 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1.5rem;
-    padding-right: 1rem;
+    gap: 1.2rem;
+    padding: 2rem;
+    padding-right: 1.5rem;
 }
 
-#chat-log::-webkit-scrollbar { width: 4px; }
+#chat-log::-webkit-scrollbar { width: 5px; }
 #chat-log::-webkit-scrollbar-track { background: transparent; }
-#chat-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+#chat-log::-webkit-scrollbar-thumb { background: rgba(10, 92, 54, 0.15); border-radius: 4px; }
 
 .msg-ai, .msg-user {
     display: flex;
-    gap: 0.7rem;
-    max-width: 82%;
+    gap: 0.9rem;
+    max-width: 80%;
+    position: relative;
 }
 
 .msg-ai { align-self: flex-start; }
 .msg-user { align-self: flex-end; flex-direction: row-reverse; }
 
 .msg-avatar {
-    width: 30px; height: 30px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem; font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
     flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .msg-avatar.ai-avatar {
-    background: var(--primary-light);
-    color: var(--primary);
-    border: 1px solid rgba(10,92,54,0.2);
+    background: linear-gradient(135deg, var(--primary) 0%, #074a2b 100%);
+    color: #FFFFFF;
+    border: 1.5px solid rgba(184, 144, 71, 0.35); /* Accent gold border */
 }
 
 .msg-avatar.user-avatar {
-    background: var(--primary);
-    color: #fff;
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+    color: #FFFFFF;
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
 }
 
 .msg-bubble {
-    padding: 0.75rem 1rem;
-    border-radius: 0 var(--radius) var(--radius) var(--radius);
+    padding: 0.9rem 1.2rem;
     font-size: 0.88rem;
-    line-height: 1.55;
+    line-height: 1.6;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
 }
 
 .msg-ai .msg-bubble {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(184, 144, 71, 0.12);
     color: var(--text-primary);
-    border-radius: 0 var(--radius) var(--radius) var(--radius);
+    border-radius: 0 16px 16px 16px;
 }
 
 .msg-ai .msg-bubble ul, .msg-ai .msg-bubble ol {
-    margin-left: 1.25rem;
-    margin-bottom: 0.5rem;
+    margin-left: 1.5rem;
+    margin-bottom: 0.6rem;
 }
 .msg-ai .msg-bubble li {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.3rem;
 }
 .msg-ai .msg-bubble p {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
 }
 .msg-ai .msg-bubble p:last-child {
     margin-bottom: 0;
 }
 .msg-ai .msg-bubble h1, .msg-ai .msg-bubble h2, .msg-ai .msg-bubble h3 {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 700;
-    margin-top: 0.6rem;
+    margin-top: 0.8rem;
     margin-bottom: 0.4rem;
+    color: var(--primary);
 }
 
 .msg-user .msg-bubble {
-    background: var(--primary);
-    color: #fff;
-    border-radius: var(--radius) 0 var(--radius) var(--radius);
+    background: linear-gradient(135deg, var(--primary) 0%, #064024 100%);
+    color: #ffffff;
+    border-radius: 16px 0 16px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* === Animations === */
@@ -112,7 +126,7 @@
     to   { opacity: 1; transform: translateY(0); }
 }
 .msg-ai, .msg-user {
-    animation: msgSlideIn 0.3s cubic-bezier(0.22,1,0.36,1) both;
+    animation: msgSlideIn 0.35s cubic-bezier(0.22,1,0.36,1) both;
 }
 
 /* Typing indicator */
@@ -120,7 +134,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 0.6rem 0.9rem;
+    padding: 0.3rem 0.5rem;
 }
 .typing-indicator span {
     width: 7px; height: 7px;
@@ -156,11 +170,92 @@
 }
 
 .chat-input-bar {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border);
+    padding: 1rem 1.8rem;
+    border-top: 1px solid rgba(184, 144, 71, 0.15);
     display: flex;
     gap: 0.8rem;
-    background: var(--surface);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 0 0 14px 14px;
+    align-items: center;
+}
+
+.chat-input-bar .form-input {
+    border-radius: 30px !important;
+    padding: 0.75rem 1.4rem;
+    border: 1.5px solid var(--border);
+    transition: var(--transition-smooth);
+    background: #FFFFFF;
+    font-size: 0.88rem;
+}
+
+.chat-input-bar .form-input:focus {
+    border-color: var(--secondary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(184, 144, 71, 0.15);
+}
+
+.chat-suggestions {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.8rem 1.8rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-top: 1px dashed rgba(184, 144, 71, 0.15);
+    flex-wrap: wrap;
+}
+
+.suggestion-chip {
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.suggestion-chip:hover {
+    background: rgba(10, 92, 54, 0.06);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+
+/* ────── MOBILE RESPONSIVENESS ────── */
+@media (max-width: 768px) {
+    .chat-container {
+        flex-direction: column;
+        height: auto;
+        min-height: calc(100vh - 12rem);
+        gap: 1rem;
+    }
+    
+    .coach-sidebar {
+        width: 100%;
+    }
+    
+    .chat-main {
+        height: 500px; /* Restrict height so it fits on screen nicely */
+    }
+    
+    .msg-ai, .msg-user {
+        max-width: 90%;
+    }
+    
+    .chat-input-bar {
+        padding: 0.8rem 1.2rem;
+    }
+    
+    .chat-suggestions {
+        padding: 0.6rem 1.2rem;
+    }
 }
 {% endblock %}
 
@@ -245,14 +340,29 @@
             {% endfor %}
         </div>
 
+        <!-- Suggested Prompt Chips -->
+        {% if not chat_history %}
+        <div class="chat-suggestions" id="chat-suggestions">
+            <button type="button" class="suggestion-chip" onclick="applySuggestion('Critique my resume bullets')">
+                <i data-lucide="sparkles" style="width: 12px; height: 12px; color: var(--secondary)"></i> Critique my resume bullets
+            </button>
+            <button type="button" class="suggestion-chip" onclick="applySuggestion('How do I negotiate salary?')">
+                <i data-lucide="dollar-sign" style="width: 12px; height: 12px; color: var(--secondary)"></i> Negotiate salary
+            </button>
+            <button type="button" class="suggestion-chip" onclick="applySuggestion('Generate mock interview questions')">
+                <i data-lucide="help-circle" style="width: 12px; height: 12px; color: var(--secondary)"></i> Mock interview prep
+            </button>
+        </div>
+        {% endif %}
+
         <!-- Input Bar -->
         <form id="chat-form" class="chat-input-bar">
             {% csrf_token %}
             <input type="text" name="message" id="message-input" required
                 placeholder="Ask about interview tips, salary, CV critiques..."
                 class="form-input" style="flex: 1;" autocomplete="off">
-            <button type="submit" id="send-btn" class="btn-primary" style="padding: 0 1.4rem; height: 42px; display:flex; align-items:center; gap:0.4rem;">
-                <span class="btn-icon"><i data-lucide="send" style="width:16px;height:16px;"></i></span>
+            <button type="submit" id="send-btn" class="btn btn-primary">
+                <span class="btn-icon" style="display:flex; align-items:center;"><i data-lucide="send" style="width:15px;height:15px;"></i></span>
                 <span class="btn-spinner"></span>
                 Send
             </button>
@@ -350,6 +460,10 @@
         sendBtn.classList.add('loading');
         input.disabled = true;
 
+        // Hide suggested chips on submit
+        const suggestions = document.getElementById('chat-suggestions');
+        if (suggestions) suggestions.remove();
+
         // Hide the empty-state placeholder if visible
         const placeholder = chatLog.querySelector('[style*="align-items: center"]');
         if (placeholder) placeholder.remove();
@@ -389,5 +503,11 @@
             form.dispatchEvent(new Event('submit'));
         }
     });
+
+    // ── Interactive suggestions click helper ──────────────────────────────
+    window.applySuggestion = function(text) {
+        input.value = text;
+        form.dispatchEvent(new Event('submit'));
+    };
 </script>
 {% endblock %}

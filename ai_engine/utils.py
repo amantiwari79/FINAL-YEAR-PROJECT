@@ -347,53 +347,7 @@ def rewrite_bullet_points(bullets):
         {"original": "Wrote Django endpoints.", "improved": "Architected 15+ secure RESTful API endpoints using Django Rest Framework, slashing response times by 30%.", "reason": "Quantified scale and action."}
     ]
 
-def generate_cover_letter(resume_text, job_title, company, job_desc):
-    """
-    Generates a personalized cover letter based on the candidate's CV and job criteria.
-    """
-    client = get_gemini_client('GEMINI_COVER_LETTER_API_KEY')
-    if client:
-        try:
-            prompt = f"""
-            Draft a highly professional and tailored cover letter for a candidate applying to the following position:
-            - Job Title: {job_title}
-            - Company: {company}
-            
-            Write the letter based on the candidate's resume achievements. Match the style and requirements of the target job description.
-            
-            Candidate Resume:
-            ---
-            {resume_text}
-            ---
-            
-            Job Description:
-            ---
-            {job_desc}
-            ---
-            """
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction="You are a professional CV editor and writer. Write a compelling, elegant cover letter in 3-4 paragraphs. Do not use place holders like [Insert Date] unless necessary. Focus on candidate value.",
-                    temperature=0.7
-                )
-            )
-            return response.text.strip()
-        except Exception as e:
-            print(f"Error generating cover letter via Gemini: {e}. Falling back to mock letter.")
 
-    # Fallback mock cover letter
-    return f"""Dear Hiring Team at {company},
-
-I am writing to express my enthusiastic interest in the {job_title} position. Based on my technical background and parsed experience, I am confident in my ability to contribute effectively from day one.
-
-In my previous roles, I focused on building clean backend logic, designing schemas, and collaborating with cross-functional teams to deploy features. These achievements align closely with the qualifications you are seeking for the {job_title} role.
-
-Thank you for your time and consideration. I look forward to discussing how my skills and experience can help {company} achieve its goals.
-
-Sincerely,
-[Your Name]"""
 
 def generate_resume_from_details(details):
     """
